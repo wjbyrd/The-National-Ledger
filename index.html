@@ -2244,14 +2244,16 @@ function clearSavedGame(){
 }
 
 function generatePseudonymFromEmail(email) {
-    const adjectives = [
-        "Iron", "Crimson", "Silent", "Golden", "Shadow", "Blazing",
-        "Stone", "Storm", "Obsidian", "Frost", "Ember", "Steel"
+    const titles = [
+        "Axiom", "Ledger", "Vector", "Meridian", "Signal", "Cipher",
+        "Frontier", "Equity", "Oracle", "Index", "Summit", "Nexus",
+        "Vault", "Prism", "Civic", "Astral", "Beacon", "Horizon"
     ];
 
-    const nouns = [
-        "Anvil", "Hammer", "Falcon", "Forge", "Sentinel", "Warden",
-        "Cipher", "Titan", "Raven", "Vanguard", "Crown", "Engine"
+    const roles = [
+        "Appraiser", "Cartographer", "Arbiter", "Custodian", "Warden", "Registrar",
+        "Archivist", "Surveyor", "Magistrate", "Keeper", "Analyst", "Mediator",
+        "Steward", "Scribe", "Sentinel", "Marshal", "Seeker", "Auditor"
     ];
 
     let hash = 0;
@@ -2264,13 +2266,12 @@ function generatePseudonymFromEmail(email) {
 
     const positiveHash = Math.abs(hash);
 
-    const adj = adjectives[positiveHash % adjectives.length];
-    const noun = nouns[Math.floor(positiveHash / adjectives.length) % nouns.length];
+    const title = titles[positiveHash % titles.length];
+    const role = roles[Math.floor(positiveHash / titles.length) % roles.length];
     const number = 1000 + (positiveHash % 9000);
 
-    return `${adj}${noun}${number}`;
+    return `${title}${role}${number}`;
 }
-
 function generatePseudonymFromEmail(email) {
     const adjectives = [
         "Iron", "Crimson", "Silent", "Golden", "Shadow", "Blazing",
