@@ -2110,7 +2110,7 @@ let remediationState = {
     careless: false
 };
 let conceptMemory = {};
-let masteryState = { byTag: {}, byObjective: {}, recent: [] };
+let masteryState = { byTag: {}, byObjective: {}, bySkill: {}, recent: [] };
 let adaptiveMode = "support";
 // =============================================
 // RAPID GUESSING / BUTTON-MASHING DETECTOR
@@ -2151,6 +2151,11 @@ let questionHistory = {
 };
 
 const SAVE_KEY = "nationalLedgerSave_v1";
+const REALM_MISSION_KEY = "nationalLedger";
+const REALM_STARTED_KEY = "economicRealm_nationalLedger_started";
+const REALM_COMPLETE_KEY = "economicRealm_nationalLedger_complete";
+const REALM_STATUS_KEY = "economicRealm_nationalLedger_status";
+const REALM_ROOM_KEY = "economicRealm_nationalLedger_room";
 
 function saveGameState(){
     const saveData = {
@@ -2185,6 +2190,9 @@ function saveGameState(){
 
     localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
     localStorage.setItem("gauntletRoom", String(room));
+    localStorage.setItem(REALM_STARTED_KEY, "true");
+    localStorage.setItem(REALM_STATUS_KEY, "contested");
+    localStorage.setItem(REALM_ROOM_KEY, String(room));
 
     const autosave = document.getElementById("autosave");
     if(autosave){
@@ -2212,7 +2220,8 @@ function loadSavedGame(){
         runID = saveData.runID || runID || "";
 
         conceptMemory = saveData.conceptMemory || {};
-        masteryState = saveData.masteryState || { byTag: {}, byObjective: {}, recent: [] };
+        masteryState = saveData.masteryState || { byTag: {}, byObjective: {}, bySkill: {}, recent: [] };
+        if(!masteryState.bySkill) masteryState.bySkill = {};
         adaptiveMode = saveData.adaptiveMode || "support";
         tagHistory = saveData.tagHistory || [];
         lastTypes = saveData.lastTypes || [];
@@ -2272,33 +2281,7 @@ function generatePseudonymFromEmail(email) {
 
     return `${title}${role}${number}`;
 }
-function generatePseudonymFromEmail(email) {
-    const adjectives = [
-        "Iron", "Crimson", "Silent", "Golden", "Shadow", "Blazing",
-        "Stone", "Storm", "Obsidian", "Frost", "Ember", "Steel"
-    ];
 
-    const nouns = [
-        "Anvil", "Hammer", "Falcon", "Forge", "Sentinel", "Warden",
-        "Cipher", "Titan", "Raven", "Vanguard", "Crown", "Engine"
-    ];
-
-    let hash = 0;
-    const cleanEmail = email.trim().toLowerCase();
-
-    for (let i = 0; i < cleanEmail.length; i++) {
-        hash = ((hash << 5) - hash) + cleanEmail.charCodeAt(i);
-        hash |= 0;
-    }
-
-    const positiveHash = Math.abs(hash);
-
-    const adj = adjectives[positiveHash % adjectives.length];
-    const noun = nouns[Math.floor(positiveHash / adjectives.length) % nouns.length];
-    const number = 1000 + (positiveHash % 9000);
-
-    return `${adj}${noun}${number}`;
-}
 	 
 // =============================================
 // ADAPTIVE ENGINE — DO NOT TOUCH
@@ -2372,6 +2355,31 @@ function getTypeBucket(tag, type){
     }
     return tagBucket.byType[key];
 }
+
+function getSkillKey(question){
+    return question?.primarySkill || question?.repairSkill || inferSkill(question) || null;
+}
+
+function getSkillBucket(question){
+    const skill = getSkillKey(question);
+    if(!skill) return null;
+
+    if(!masteryState.bySkill){
+        masteryState.bySkill = {};
+    }
+
+    if(!masteryState.bySkill[skill]){
+        masteryState.bySkill[skill] = {
+            attempts: 0,
+            correct: 0,
+            avgTime: 0,
+            byType: {}
+        };
+    }
+
+    return masteryState.bySkill[skill];
+}
+
 
 function inferObjective(question){
     if(!question) return "general";
@@ -2469,6 +2477,39 @@ function inferObjective(question){
     return `${tag}_${type}`;
 }
 
+function inferSkill(question){
+    if(!question) return null;
+
+    const q = (question.q || "").toLowerCase();
+    const tag = (question.tag || "").toLowerCase();
+
+    // National Ledger / macro measurement skills
+    if(tag === "gdp" || q.includes("gdp") || q.includes("final good") || q.includes("intermediate good")) return "gdp_measurement_and_components";
+    if(tag === "cpi" || q.includes("cpi") || q.includes("consumer price index") || q.includes("inflation rate") || q.includes("cost of living")) return "price_level_inflation_measurement";
+    if(tag === "unemployment" || tag === "labor_market" || q.includes("unemployment") || q.includes("labor force") || q.includes("discouraged worker")) return "labor_market_measurement";
+    if(tag === "natural_unemployment" || tag === "labor_flows" || tag === "job_search" || q.includes("natural rate") || q.includes("job finding") || q.includes("job separation")) return "natural_rate_labor_flows";
+    if(tag === "production" || tag === "output" || tag === "income" || q.includes("production function")) return "production_output_income";
+    if(tag === "factor_markets" || tag === "factor_prices" || tag === "income_distribution" || q.includes("real wage") || q.includes("marginal product")) return "factor_prices_income_distribution";
+    if(tag === "goods_demand" || tag === "demand" || tag === "expenditure" || q.includes("consumption") || q.includes("investment") || q.includes("saving")) return "goods_demand_saving_investment";
+    if(tag === "equilibrium" || tag === "goods_market" || tag === "loanable_funds" || q.includes("loanable funds") || q.includes("crowding out")) return "goods_market_equilibrium";
+
+    // Existing realm/economic system skills in this file
+    if(tag === "interaction") return "linked_market_adjustment";
+    if(tag === "efficiency") return "efficiency_surplus_pareto";
+    if(tag === "failure") return "market_failure_externalities";
+    if(tag === "power") return "market_power_monopoly_pricing";
+    if(tag === "strategy") return "strategic_interdependence";
+    if(tag === "equity") return "efficiency_equity_tradeoff";
+
+    if(q.includes("p = mc") || q.includes("price equals marginal cost")) return "allocative_efficiency";
+    if(q.includes("mr = mc") || q.includes("marginal revenue")) return "profit_maximization_rule";
+    if(q.includes("edgeworth") || q.includes("contract curve") || q.includes("pareto")) return "pareto_exchange_efficiency";
+    if(q.includes("transfer") || q.includes("redistribute") || q.includes("fairness")) return "efficiency_equity_tradeoff";
+
+    return null;
+}
+
+
 function getObjectiveBucket(question){
     const objectiveKey = inferObjective(question);
     if(!masteryState.byObjective[objectiveKey]){
@@ -2537,17 +2578,20 @@ function recordAdaptiveAttempt(question, isCorrect, responseTime){
     const tagBucket = getTagBucket(question.tag);
     const typeBucket = getTypeBucket(question.tag, question.type);
     const objectiveBucket = getObjectiveBucket(question);
+    const skillBucket = getSkillBucket(question);
 
     updateBucket(tagBucket, isCorrect, responseTime);
     updateBucket(typeBucket, isCorrect, responseTime);
     updateBucket(objectiveBucket, isCorrect, responseTime);
+    updateBucket(skillBucket, isCorrect, responseTime);
 
     masteryState.recent.push({
         correct: !!isCorrect,
         responseTime,
         tag: question.tag,
         type: question.type || "default",
-        objective: currentQuestion.objective || inferObjective(currentQuestion)
+        objective: currentQuestion.objective || inferObjective(currentQuestion),
+        skill: getSkillKey(question)
     });
 
     if(masteryState.recent.length > 20){
@@ -2678,12 +2722,15 @@ function planRemediation(question, responseTime){
     const carelessMiss = responseTime < expected * 0.55 && (objectiveAccuracy === null || objectiveAccuracy >= 0.45);
     const repeatedObjectiveMiss = objectiveAttempts >= 2 && objectiveAccuracy !== null && objectiveAccuracy < 0.6;
     const slowStruggle = responseTime > expected * 1.2;
+    const skill = getSkillKey(question);
 
     return {
         active: true,
         stage: carelessMiss ? "bridge" : "repair",
         tag: question.tag,
         objective: currentQuestion.objective || inferObjective(currentQuestion),
+        skill: skill,
+        commonError: question.commonError || null,
         sourceType: question.type || "default",
         returnRoom: room,
         originQuestionId: question.id || null,
@@ -2699,10 +2746,18 @@ function getRemediationStageLabel(stage){
     return "Recovery Retest";
 }
 
-function getQuestionsMatchingNeed(pool, objectiveKey, tag, excludeIds = []){
+function getQuestionsMatchingNeed(pool, objectiveKey, tag, excludeIds = [], skillKey = null){
     if(!Array.isArray(pool) || pool.length === 0) return [];
 
     let candidates = pool.filter(q => !excludeIds.includes(q.id));
+
+    if(skillKey){
+        let skillMatches = candidates.filter(q =>
+            q.primarySkill === skillKey || q.repairSkill === skillKey || inferSkill(q) === skillKey
+        );
+        if(skillMatches.length > 0) return skillMatches;
+    }
+
     let objectiveMatches = candidates.filter(q => inferObjective(q) === objectiveKey);
     if(objectiveMatches.length > 0) return objectiveMatches;
 
@@ -2720,13 +2775,13 @@ function getRetestPoolName(){
     return "elite";
 }
 
-function pickRemediationFromBank(poolName, objectiveKey, tag, purpose = "confirm"){
+function pickRemediationFromBank(poolName, objectiveKey, tag, purpose = "confirm", skillKey = null){
     const pool = questionBanks[poolName] || [];
     const recentIds = (questionHistory[poolName] || []).slice(-10);
-    let candidates = getQuestionsMatchingNeed(pool, objectiveKey, tag, recentIds);
+    let candidates = getQuestionsMatchingNeed(pool, objectiveKey, tag, recentIds, skillKey);
 
     if(candidates.length === 0){
-        candidates = getQuestionsMatchingNeed(pool, objectiveKey, tag, []);
+        candidates = getQuestionsMatchingNeed(pool, objectiveKey, tag, [], skillKey);
     }
 
     if(candidates.length === 0) return null;
@@ -2756,22 +2811,48 @@ function getRemediationQuestion(state){
 
     if(state.stage === "repair"){
         const repairPool = easyConceptPools[state.tag] || [];
-        const repairCandidates = getQuestionsMatchingNeed(repairPool, state.objective, state.tag, excludeIds);
+        const repairCandidates = getQuestionsMatchingNeed(
+            repairPool,
+            state.objective,
+            state.tag,
+            excludeIds,
+            state.skill
+        );
+
         if(repairCandidates.length > 0){
-            return weightedPick(repairCandidates, { mode: "support", purpose: "repair" });
+            return weightedPick(repairCandidates, {
+                mode: "support",
+                purpose: "repair"
+            });
         }
     }
 
     if(state.stage === "bridge"){
         const bridgePool = mediumConceptPools[state.tag] || [];
-        const bridgeCandidates = getQuestionsMatchingNeed(bridgePool, state.objective, state.tag, excludeIds);
+        const bridgeCandidates = getQuestionsMatchingNeed(
+            bridgePool,
+            state.objective,
+            state.tag,
+            excludeIds,
+            state.skill
+        );
+
         if(bridgeCandidates.length > 0){
-            return weightedPick(bridgeCandidates, { mode: "support", purpose: "confirm" });
+            return weightedPick(bridgeCandidates, {
+                mode: "support",
+                purpose: "confirm"
+            });
         }
     }
 
     const retestPoolName = getRetestPoolName();
-    return pickRemediationFromBank(retestPoolName, state.objective, state.tag, state.stage === "retest" ? "challenge" : "confirm");
+    return pickRemediationFromBank(
+        retestPoolName,
+        state.objective,
+        state.tag,
+        state.stage === "retest" ? "challenge" : "confirm",
+        state.skill
+    );
 }
 
 function weightedPick(pool, options = {}){
@@ -2970,6 +3051,64 @@ crown:{
     text:"Growth has its source. Physical capital, human capital, natural resources, and technology rise together as the ledger reaches full power."
 }
 };
+
+
+function getRecoveryLine(stage){
+  if(stage === "repair"){
+    return "Recovery ledger opened. The Auditor is isolating the bad entry.";
+  }
+
+  if(stage === "bridge"){
+    return "Bridge audit active. Apply the measure before the Ledger lets you advance.";
+  }
+
+  if(stage === "retest"){
+    return "Retest entry reopened. Same weakness. Cleaner accounting required.";
+  }
+
+  if(stage === "miss"){
+    return "The record is still unstable. Repair the weakness before advancing.";
+  }
+
+  return "Recovery confirmed. Return to the Ledger.";
+}
+
+function getNationalLedgerBossName(){
+  if(room === 10) return "Registrar of False Measures";
+  if(room === 20) return "Warden of Labor Flows";
+  if(room === 30) return "Comptroller of Equilibrium";
+  return "The National Ledger";
+}
+
+function getNationalLedgerBossLine({ isCorrect, tag, type, objective, streak, bossHealth, responseTime }){
+  const bossName = getNationalLedgerBossName();
+
+  if(isCorrect && streak >= 5){
+    return `${bossName}: The pattern is holding. Now prove it was not luck.`;
+  }
+
+  if(isCorrect && bossHealth <= 2){
+    return `${bossName}: Clean entry. The account is cracking.`;
+  }
+
+  if(!isCorrect && responseTime < 5000){
+    return `${bossName}: Fast accounting. Bad accounting. Classic disaster.`;
+  }
+
+  if(!isCorrect && (tag === "gdp" || tag === "cpi" || tag === "unemployment" || tag === "efficiency" || tag === "power")){
+    return `${bossName}: The category matters. Measure it wrong and the whole ledger lies.`;
+  }
+
+  if(!isCorrect && tag){
+    return `${bossName}: Weakness logged: ${tag}. The Ledger will circle back.`;
+  }
+
+  if(isCorrect){
+    return `${bossName}: Correct. One clean entry does not close the books.`;
+  }
+
+  return `${bossName}: The checkpoint holds. Try again.`;
+}
   
 // =============================================
 // USERNAME RESTORE — SAFE TO MODIFY
@@ -3071,6 +3210,9 @@ function startGame(shouldResume = false) {
     localStorage.setItem("gauntletEmail", studentEmail);
     localStorage.setItem("gauntletUser", username);
     localStorage.setItem("gauntletRunID", runID);
+    localStorage.setItem(REALM_STARTED_KEY, "true");
+    localStorage.setItem(REALM_STATUS_KEY, "contested");
+    localStorage.setItem(REALM_ROOM_KEY, String(room || 1));
 
     sendGameData({
         runID: runID,
@@ -3094,7 +3236,7 @@ function startGame(shouldResume = false) {
         bossPool = [];
         calcBag = [];
         conceptMemory = {};
-        masteryState = { byTag: {}, byObjective: {}, recent: [] };
+        masteryState = { byTag: {}, byObjective: {}, bySkill: {}, recent: [] };
         tagHistory = [];
         lastTypes = [];
         adaptiveMode = "support";
@@ -3109,6 +3251,9 @@ function startGame(shouldResume = false) {
         localStorage.removeItem("vaultSeal");
         localStorage.removeItem("vaultPrism");
         localStorage.removeItem("vaultCrown");
+        localStorage.removeItem(REALM_COMPLETE_KEY);
+        localStorage.setItem(REALM_STATUS_KEY, "contested");
+        localStorage.setItem(REALM_ROOM_KEY, "1");
 
         questionHistory = {
             easy: [], medium: [], hard: [], elite: [], calculation: [],
@@ -4333,9 +4478,9 @@ function loadQuestion() {
                : room === 20 ? "THE WARDEN OF LABOR FLOWS"
                : "THE COMPTROLLER OF EQUILIBRIUM";
 
-       let bColor = room === 10 ? "#a78bfa"
-               : room === 20 ? "#7c3aed"
-               : "#991b1b";
+       let bColor = room === 10 ? "#d6b15c"
+               : room === 20 ? "#c46a3a"
+               : "#f0c75e";
        
         document.getElementById("srAnnouncements").innerText =`Boss encounter. ${bTitle}. Prepare yourself`;
         bossMsg.innerText = "⚠ BOSS ENCOUNTER ⚠";
@@ -4721,7 +4866,7 @@ if(remediationState.active){
                 currentQuestion.hint ? "💡 Hint: " + currentQuestion.hint : "";
 
             msgElement.innerHTML =
-                `<span class='fade-out-text'>Control returns. Now prove your command under pressure.</span>`;
+                `<span class='fade-out-text'>${getRecoveryLine("bridge")}</span>`;
 
             displayQuestion();
             return;
@@ -4746,7 +4891,7 @@ if(remediationState.active){
                 currentQuestion.hint ? "💡 Hint: " + currentQuestion.hint : "";
 
             msgElement.innerHTML =
-                `<span class='fade-out-text'>The concept is contained. One final proof.</span>`;
+                `<span class='fade-out-text'>${getRecoveryLine("retest")}</span>`;
 
             displayQuestion();
             return;
@@ -4759,7 +4904,7 @@ if(remediationState.active){
     adaptiveMode = "support";
 
     msgElement.innerHTML =
-        `<span class='fade-out-text'>Recovery confirmed. Return to the Ledger.</span>`;
+        `<span class='fade-out-text'>${getRecoveryLine("complete")}</span>`;
 
     room = returnRoom;
     saveGameState();
@@ -4781,7 +4926,19 @@ if(remediationState.active){
         if(isBossRoom){
         bossHealth--;
         
-        msgElement.innerHTML = `<span style='color:#f87171;font-weight:bold;'>⚔ HIT! Boss Health: ${bossHealth}/3</span>`;
+        const bossLine = getNationalLedgerBossLine({
+            isCorrect: true,
+            tag: currentQuestion.tag || "",
+            type: currentQuestion.type || "",
+            objective: currentQuestion.objective || inferObjective(currentQuestion),
+            streak,
+            bossHealth,
+            responseTime
+        });
+
+        msgElement.innerHTML =
+            `<span style='color:#f87171;font-weight:bold;'>⚔ HIT! Boss Health: ${bossHealth}/3</span><br>
+             <span class='fade-out-text'>${bossLine}</span>`;
         triggerBossShake();
         
         if (bossHealth > 0) {
@@ -4866,6 +5023,20 @@ if(remediationState.active){
             (conceptMemory[currentQuestion.tag] || 0) + rushPenalty;
     }
 
+    if(isBossRoom){
+        const bossLine = getNationalLedgerBossLine({
+            isCorrect: false,
+            tag: currentQuestion.tag || "",
+            type: currentQuestion.type || "",
+            objective: currentQuestion.objective || inferObjective(currentQuestion),
+            streak,
+            bossHealth,
+            responseTime
+        });
+
+        msgElement.innerHTML = `<span class='fade-out-text'>${bossLine}</span>`;
+    }
+
     // --- IF STUDENT MISSES DURING ACTIVE REMEDIATION ---
 if(remediationState.active){
     const remediationPrompt = getRemediationQuestion(remediationState);
@@ -4881,7 +5052,7 @@ if(remediationState.active){
             currentQuestion.hint ? "💡 Hint: " + currentQuestion.hint : "";
 
         msgElement.innerHTML =
-            `<span class='fade-out-text'>Your control is still unstable. Repair the weakness before advancing.</span>`;
+            `<span class='fade-out-text'>${getRecoveryLine("miss")}</span>`;
 
         displayQuestion();
         return;
@@ -4909,10 +5080,10 @@ if (!remediationState.active && currentQuestion.tag && shouldTriggerDetour(curre
             currentQuestion.hint ? "💡 Hint: " + currentQuestion.hint : "";
 
         const remediationMessage = remediationState.careless
-            ? "You rushed the choice. Slow down and regain control."
+            ? "You rushed the entry. Slow down and audit the category."
             : remediationState.slowStruggle
                 ? "The Ledger resists. Rebuild the concept before advancing."
-                : "Your control fractured. Repair the weakness before moving on.";
+                : getRecoveryLine(remediationState.stage);
 
         msgElement.innerHTML =
             `<span class='fade-out-text'>${remediationMessage}</span>`;
@@ -5302,6 +5473,11 @@ function generateCode(name, acc, streak, total){
 // This is a PRESENTATION layer, not a logic layer.
 // =============================================     
 function handleVictory() {
+    localStorage.setItem(REALM_STARTED_KEY, "true");
+    localStorage.setItem(REALM_COMPLETE_KEY, "true");
+    localStorage.setItem(REALM_STATUS_KEY, "restored");
+    localStorage.setItem(REALM_ROOM_KEY, "30");
+
     clearSavedGame();
 
     bgMusic.pause();
@@ -5388,13 +5564,13 @@ sendGameData({
 // =============================================
     gameBox.innerHTML = `
         <div style="text-align:center; padding:30px;">
-            <h1 class="victory" style="color:gold; text-shadow: 0 0 20px gold;">👑 CONQUEST COMPLETE 👑</h1>
+            <h1 class="victory" style="color:gold; text-shadow: 0 0 20px gold;">LEDGER COMPLETE</h1>
 
             <div style="margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid #374151;">
-                <p>👤 Adventurer: <strong>${username}</strong></p>
-                <p>🎯 Accuracy: <strong>${accuracy}%</strong> | 🔥 Best Streak: <strong>${maxStreak}</strong></p>
-                <p>⏱️ Time: <strong>${timeString}</strong> | 📝 Total Questions: <strong>${totalAttempts}</strong></p>
-                <p style="font-size: 0.8em; color: #9ca3af;">🔑 Verification Code: <span id="vCode">${verificationCode}</span></p>
+                <p>Ledger File: <strong>${username}</strong></p>
+                <p>Accuracy: <strong>${accuracy}%</strong> | Best Streak: <strong>${maxStreak}</strong></p>
+                <p>Elapsed Time: <strong>${timeString}</strong> | Total Questions: <strong>${totalAttempts}</strong></p>
+                <p style="font-size: 0.8em; color: #9ca3af;">Verification Code: <span id="vCode">${verificationCode}</span></p>
             </div>
 
             <p id="archivistLine" style="margin-top:20px; font-style:italic; color:#93c5fd; font-size:1.1em; color:${lineColor}; text-shadow: 0 0 6px rgba(147,197,253,0.4); opacity:0;">
@@ -5403,10 +5579,10 @@ sendGameData({
 
             <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
                 <button id="shareBtn" onclick="copyResults()" style="background:#4ade80; color:black; font-weight:bold; padding:12px 24px; border:none; border-radius:6px; cursor:pointer;">
-                    📋 Copy Results
+                    Copy Results
                 </button>
                 <button onclick="location.reload()" style="background:transparent; color:white; border:1px solid white; padding:12px 24px; border-radius:6px; cursor:pointer;">
-                    Try Again
+                    Run Ledger Again
                 </button>
             </div>
         </div>
@@ -5550,7 +5726,7 @@ function sendGameData(data) {
     timestamp: new Date().toISOString(),
     runID: data.runID || localStorage.getItem("gauntletRunID") || "",
     token: data.token || "",
-    version: "national-ledger-ms-telemetry-v1",
+    version: "NationalLedger-ms-telemetry-v3.5",
     userAgent: navigator.userAgent || "",
     game: data.game || "The National Ledger",
     event: data.event || "",
@@ -5599,6 +5775,7 @@ function sendGameData(data) {
 </script>
 </body>
 </html>
+
 
 
 
