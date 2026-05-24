@@ -3425,17 +3425,17 @@ const artifacts = {
 seal:{
     img:"seal.png",
     title:"Registrar’s Seal",
-    text:"The accounts now hold together. GDP, income, spending, and measurement categories can be read without false signals slipping through."
+    text:"The first records reconcile. GDP, income, expenditure, CPI, inflation, and real values can now be separated from false measures."
 },
 prism:{
     img:"prism.png",
     title:"The Warden’s Prism",
-    text:"The price level breaks into clearer light. Inflation, cost of living, and real values can now be separated from nominal noise."
+    text:"Growth now splits into its true sources. Productivity, capital, human capital, natural resources, technology, and policy can be read without distortion."
 },
 crown:{
     img:"crown.png",
     title:"The Comptroller’s Crown",
-    text:"Growth has its source. Physical capital, human capital, natural resources, and technology rise together as the ledger reaches full power."
+    text:"The labor record is restored. Employment, unemployment, participation, job search, mismatch, policy effects, and the natural rate now balance in the ledger."
 }
 };
 
@@ -3462,8 +3462,8 @@ function getRecoveryLine(stage){
 
 function getNationalLedgerBossName(){
   if(room === 10) return "Registrar of False Measures";
-  if(room === 20) return "Warden of Labor Flows";
-  if(room === 30) return "Comptroller of Equilibrium";
+  if(room === 20) return "Warden of Growth";
+  if(room === 30) return "Comptroller of Labor Records";
   return "The National Ledger";
 }
 
@@ -3482,9 +3482,31 @@ function getNationalLedgerBossLine({ isCorrect, tag, type, objective, streak, bo
     return `${bossName}: Fast accounting. Bad accounting. Classic disaster.`;
   }
 
-  if(!isCorrect && (tag === "gdp" || tag === "cpi" || tag === "unemployment" || tag === "efficiency" || tag === "power")){
+if(!isCorrect && [
+  "gdp_income_expenditure",
+  "gdp_definition",
+  "gdp_components",
+  "real_nominal_gdp",
+  "gdp_wellbeing",
+  "cpi_inflation",
+  "cpi_bias",
+  "cpi_vs_deflator",
+  "inflation_adjustment",
+  "interest_inflation",
+  "growth_differences",
+  "productivity",
+  "productivity_factors",
+  "diminishing_returns",
+  "catch_up_growth",
+  "growth_policy",
+  "labor_force_stats",
+  "employment_categories",
+  "unemployment_types",
+  "labor_market_policy",
+  "natural_unemployment"
+].includes(tag)){
     return `${bossName}: The category matters. Measure it wrong and the whole ledger lies.`;
-  }
+}
 
   if(!isCorrect && tag){
     return `${bossName}: Weakness logged: ${tag}. The Ledger will circle back.`;
@@ -4280,7 +4302,7 @@ easy: [
 { id:"NL-E-29-18", q:"A binding minimum wage can create unemployment because it:", options:["Raises the wage above equilibrium and creates a surplus of labor","Lowers wages below equilibrium","Increases labor demand above labor supply","Makes all workers employed"], a:0, tag:"labor_market_policy", type:"interpretation", objective:"LO29.4", feedback:"A binding minimum wage can create a surplus of labor, meaning more workers want jobs than firms want to hire." },
 { id:"NL-E-29-19", q:"Unions can contribute to unemployment when they:", options:["Push wages above equilibrium in unionized labor markets","Lower wages below equilibrium","Remove all bargaining power from workers","Make labor demand vertical"], a:0, tag:"labor_market_policy", type:"interpretation", objective:"LO29.4", feedback:"Union wage bargaining can raise wages above equilibrium and reduce the quantity of labor demanded." },
 { id:"NL-E-29-20", q:"The natural rate of unemployment exists because:", options:["Even in the long run, frictional and structural unemployment remain","Cyclical unemployment is always zero in recessions","No one ever changes jobs","The labor force never changes"], a:0, tag:"natural_unemployment", type:"definition", objective:"LO29.5", feedback:"The natural rate reflects unemployment that remains from normal job search and structural mismatches." }
-];
+],
 
 medium: [
 { id:"NL-M-24-01", q:"A student says GDP can be measured by adding up either total income or total expenditure. Why is that true?", options:["Every transaction has a buyer and a seller, so spending by one party becomes income for another","GDP only counts income earned by households, not spending","The government adjusts income until it equals spending","Exports and imports must always be equal"], a:0, tag:"gdp_income_expenditure", type:"interpretation", objective:"LO24.1", feedback:"The income and expenditure approaches match because each dollar spent becomes income to someone else." },
@@ -4540,31 +4562,6 @@ elite: [
 ],
 };
 
-const objectiveLabels = {
-  LO24.1: "Income and Expenditure",
-  LO24.2: "GDP Definition and Counting Rules",
-  LO24.3: "GDP Components",
-  LO24.4: "Real and Nominal GDP",
-  LO24.5: "GDP and Well-Being",
-
-  LO25.1: "CPI and Inflation",
-  LO25.2: "CPI Bias and Cost of Living",
-  LO25.3: "CPI versus GDP Deflator",
-  LO25.4: "Inflation Adjustment",
-  LO25.5: "Nominal and Real Interest Rates",
-
-  LO26.1: "Growth Differences Across Countries",
-  LO26.2: "Productivity and Living Standards",
-  LO26.3: "Sources of Productivity",
-  LO26.4: "Growth Policy",
-
-  LO29.1: "Labor Force Statistics",
-  LO29.2: "Employment Categories",
-  LO29.3: "Types of Unemployment",
-  LO29.4: "Labor Market Policies",
-  LO29.5: "Natural Rate of Unemployment"
-};
-	 
 const objectiveLabels = {
   "LO24.1": "Income and Expenditure",
   "LO24.2": "GDP Definition and Counting Rules",
@@ -5372,11 +5369,15 @@ function loadQuestion() {
 	imageBox.style.display = "none";
 
     // 1. Determine Difficulty and Boss Status
-    if((gameMode === "exam" || gameMode === "timed") && room > 30){
-        if(gameMode === "timed") showTimedResults();
-        else handleVictory();
-        return;
-    }
+if(gameMode === "timed" && timedModeEndTime && Date.now() >= timedModeEndTime){
+    showTimedResults();
+    return;
+}
+
+if((gameMode === "timed" || gameMode === "exam") && room > 30){
+    handlePracticeModeComplete();
+    return;
+}
 
     let diff = getDifficultyForMode();
 
@@ -6302,17 +6303,17 @@ function showKnowledgeRoom(bossRoom) {
 // Keep room numbers aligned with:
 // - actual boss encounters
 // =============================================    
-   if (bossRoom === 10) {
-    title = "THE REGISTRAR CONCEDES: EQUILIBRIUM HOLDS";
-    summary = "The system holds. You have traced the connections and recognized how equilibrium is maintained. Disturbance no longer confuses you—you anticipate the adjustment.";
+if (bossRoom === 10) {
+    title = "THE REGISTRAR CONCEDES: THE MEASURES RECONCILE";
+    summary = "You have restored the first ledger. GDP, income, expenditure, prices, and purchasing power now separate cleanly. False measures no longer pass inspection.";
 } 
 else if (bossRoom === 20) {
-    title = "THE WARDEN SUBMITS: MARKET POWER BROKEN.";
-    summary = "Control is understood. Price is no longer taken—it is set. You recognize how power shapes outcomes, and how others respond within its shadow.";
+    title = "THE WARDEN SUBMITS: PRODUCTIVITY SOURCES IDENTIFIED";
+    summary = "You have traced growth to its source. Capital, labor skills, natural resources, technology, and policy now sit in their proper accounts.";
 } 
 else if (bossRoom === 30) {
-    title = "THE COMPTROLLER FALLS: YOU ANTICIPATED EVERY MOVE.";
-    summary = "You have mastered response. Every move, every reaction, every outcome—anticipated. Strategy is no longer uncertain. The system no longer tests you. It answers to you.";
+    title = "THE COMPTROLLER FALLS: THE LABOR RECORD IS BALANCED";
+    summary = "You have audited employment, unemployment, labor force participation, job search, mismatch, and the natural rate. The labor ledger no longer hides its weak entries.";
 }
 
     // Update the UI
@@ -6358,6 +6359,131 @@ document.getElementById("continueBtn").onclick = () => {
         loadQuestion();
     }
 };
+}
+
+function handleLegendaryVictory(){
+    stopTimedModeClock();
+    localStorage.setItem("economicRealm_nationalLedger_legendary_complete", "true");
+    localStorage.setItem("nationalLedgerLegendaryComplete", "true");
+    clearSavedGame();
+
+    bgMusic.pause();
+    bossMusic.pause();
+    finalBossMusic.pause();
+
+    if(typeof sfxVictory !== "undefined"){
+        sfxVictory.currentTime = 0;
+        sfxVictory.play();
+    }
+
+    const totalTimeMs = Date.now() - startTime;
+    const timeString = formatTime(totalTimeMs);
+    const accuracy = totalAttempts > 0 ? Math.round((correctAnswers / totalAttempts) * 100) : 0;
+    const verificationCode = generateCode(username + "|LEGENDARY", accuracy, maxStreak, totalTimeMs);
+
+    sendGameData({
+        runID,
+        game: "The National Ledger",
+        event: "legendary_complete",
+        user: username,
+        email: studentEmail,
+        room,
+        questionId: 0,
+        correct: 1,
+        tag: "",
+        type: "",
+        objective: "",
+        responseTime: 0,
+        attempt: totalAttempts,
+        streak,
+        elapsedTime: totalTimeMs,
+        adaptiveMode: "legendary_complete",
+        totalTime: totalTimeMs,
+        accuracy: accuracy / 100,
+        maxStreak,
+        totalAttempts,
+        verificationCode
+    });
+
+    let judgment = "Legendary Ledger run confirmed. You handled national output, prices, growth, productivity, and labor-market traps under pressure.";
+    if(accuracy >= 90){
+        judgment = "Legendary mastery confirmed. You did not just recognize terms. You audited the whole national record.";
+    } else if(accuracy < 75){
+        judgment = "You survived Legendary Mode, but the Ledger left marks. Completion counts. Mastery still needs another run.";
+    }
+
+    document.getElementById("bossMessage").innerText = "";
+    document.getElementById("formulaHint").innerText = "";
+    document.getElementById("artifactDrop").style.display = "none";
+
+    document.getElementById("question").innerHTML = `
+        <span class="boss-title">LEGENDARY LEDGER COMPLETE</span>
+        <div class="boss-q">
+            ${judgment}<br><br>
+            Accuracy: ${accuracy}%<br>
+            Total Attempts: ${totalAttempts}<br>
+            Best Streak: ${maxStreak}<br>
+            Total Time: ${timeString}<br>
+            Verification Code: <strong>${verificationCode}</strong>
+        </div>
+    `;
+
+    document.getElementById("answers").innerHTML = `
+        <button class="continue-btn" onclick="returnToModeSelectFromRun()">Choose Another Ledger Run</button>
+    `;
+
+    document.getElementById("message").innerText = "Legendary completion saved separately. Standard Realm progress was not changed.";
+}
+
+function handlePracticeModeComplete(){
+    stopTimedModeClock();
+
+    const accuracy = totalAttempts > 0
+        ? Math.round((correctAnswers / totalAttempts) * 100)
+        : 0;
+
+    sendGameData({
+        runID,
+        game: "The National Ledger",
+        event: `${gameMode}_complete`,
+        user: username,
+        email: studentEmail,
+        room,
+        questionId: 0,
+        correct: 1,
+        tag: "",
+        type: "",
+        objective: "",
+        responseTime: 0,
+        attempt: totalAttempts,
+        streak,
+        elapsedTime: startTime ? (Date.now() - startTime) : 0,
+        adaptiveMode: `${gameMode}_complete`,
+        totalTime: startTime ? (Date.now() - startTime) : 0,
+        accuracy: accuracy / 100,
+        maxStreak,
+        totalAttempts
+    });
+
+    document.getElementById("bossMessage").innerText = "";
+    document.getElementById("formulaHint").innerText = "";
+    document.getElementById("artifactDrop").style.display = "none";
+
+    document.getElementById("question").innerHTML = `
+        <span class="boss-title">${getModeDisplayName().toUpperCase()} COMPLETE</span>
+        <div class="boss-q">
+            You reached the end of this practice path.<br><br>
+            Accuracy: ${accuracy}%<br>
+            Total Attempts: ${totalAttempts}<br>
+            Best Streak: ${maxStreak}
+        </div>
+    `;
+
+    document.getElementById("answers").innerHTML = `
+        <button class="continue-btn" onclick="returnToModeSelectFromRun()">Choose Another Ledger Run</button>
+    `;
+
+    document.getElementById("message").innerText = "Practice complete. The campaign record was not changed.";
 }
 
 // =============================================
@@ -6435,52 +6561,65 @@ function generateCode(name, acc, streak, total){
 // - fade-in animation
 //
 // This is a PRESENTATION layer, not a logic layer.
-// =============================================     
+// =============================================   
+	 
 function handleVictory() {
-    if(modeAllowsRealmProgress()){
-        localStorage.setItem(REALM_STARTED_KEY, "true");
-        localStorage.setItem(REALM_COMPLETE_KEY, "true");
-        localStorage.setItem(REALM_STATUS_KEY, "restored");
-        localStorage.setItem(REALM_ROOM_KEY, "30");
+    if(!modeAllowsRealmProgress()){
+        if(gameMode === "legendary"){
+            handleLegendaryVictory();
+        } else {
+            handlePracticeModeComplete();
+        }
+        return;
     }
+
+    localStorage.setItem(REALM_STARTED_KEY, "true");
+    localStorage.setItem(REALM_COMPLETE_KEY, "true");
+    localStorage.setItem(REALM_STATUS_KEY, "restored");
+    localStorage.setItem(REALM_ROOM_KEY, "30");
 
     clearSavedGame();
 
     bgMusic.pause();
     bossMusic.pause();
-    if (typeof sfxVictory !== 'undefined') {
+    finalBossMusic.pause();
+
+    if(typeof sfxVictory !== "undefined"){
         sfxVictory.currentTime = 0;
         sfxVictory.play();
     }
-    
+
     const totalTimeMs = Date.now() - startTime;
     const timeString = formatTime(totalTimeMs);
-    const accuracy = Math.round((correctAnswers / totalAttempts) * 100);
+    const accuracy = totalAttempts > 0 ? Math.round((correctAnswers / totalAttempts) * 100) : 0;
     const verificationCode = generateCode(username, accuracy, maxStreak, totalTimeMs);
 
-sendGameData({
-    runID: runID,
-	game: "The National Ledger",
-    event: "complete",
-    user: username,
-	email: studentEmail,
-    room: room,
-    questionId: 0,
-    correct: 1,
-    tag: "",
-    type: "",
-    objective: "",
-    responseTime: 0,
-    attempt: totalAttempts,
-    streak: streak,
-    elapsedTime: startTime ? (Date.now() - startTime) : 0,
-    adaptiveMode: "complete",
-    totalTime: totalTimeMs,
-    accuracy: accuracy / 100,
-    maxStreak: maxStreak,
-    totalAttempts: totalAttempts,
-    verificationCode: verificationCode
-});
+    sendGameData({
+        runID,
+        game: "The National Ledger",
+        event: "complete",
+        user: username,
+        email: studentEmail,
+        room,
+        questionId: 0,
+        correct: 1,
+        tag: "",
+        type: "",
+        objective: "",
+        responseTime: 0,
+        attempt: totalAttempts,
+        streak,
+        elapsedTime: totalTimeMs,
+        adaptiveMode: "complete",
+        totalTime: totalTimeMs,
+        accuracy: accuracy / 100,
+        maxStreak,
+        totalAttempts,
+        verificationCode
+    });
+
+    // keep your existing victory screen code below this point
+}
     
 // =============================================
 // PERFORMANCE FEEDBACK TEXT — SAFE TO EDIT
