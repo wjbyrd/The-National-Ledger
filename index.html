@@ -3723,10 +3723,131 @@ function resetRunStateForNewMode(){
     usedQuestions={easy:[],medium:[],hard:[],elite:[],legendary:[],easyBoss:[],mediumBoss:[],finalBoss:[],legendaryBoss:[]};
     if(gameMode!=="standard"){localStorage.removeItem("gauntletRoom");localStorage.removeItem("vaultSeal");localStorage.removeItem("vaultPrism");localStorage.removeItem("vaultCrown");}
 }
-function startTimedModeClock(){stopTimedModeClock();timedModeEndTime=Date.now()+timedModeDurationMs;updateTimedModeClock();timedModeTimerInterval=setInterval(updateTimedModeClock,250);}
-function stopTimedModeClock(){if(timedModeTimerInterval){clearInterval(timedModeTimerInterval);timedModeTimerInterval=null;}}
-function updateTimedModeClock(){if(gameMode!=="timed"||!timedModeEndTime)return;const remaining=Math.max(0,timedModeEndTime-Date.now());const totalSeconds=Math.ceil(remaining/1000);const minutes=Math.floor(totalSeconds/60);const seconds=totalSeconds%60;const display=document.getElementById("timerDisplay");if(display){display.innerText=`${minutes}:${String(seconds).padStart(2,"0")}`;display.classList.toggle("timer-warning",remaining<=60000);}if(remaining<=0){stopTimedModeClock();showTimedResults();}}
-function showTimedResults(){const accuracy=totalAttempts>0?Math.round((correctAnswers/totalAttempts)*100):0;localStorage.setItem("nationalLedgerTimedLastRoom",String(room));localStorage.setItem("nationalLedgerTimedLastAccuracy",String(accuracy));localStorage.setItem("nationalLedgerTimedLastAttempts",String(totalAttempts));localStorage.setItem("nationalLedgerTimedLastStreak",String(maxStreak));const bestRoom=Number(localStorage.getItem("nationalLedgerTimedBestRoom")||0);if(room>bestRoom)localStorage.setItem("nationalLedgerTimedBestRoom",String(room));document.getElementById("gameBox").innerHTML=`<div style="text-align:center; padding:30px;"><h1 class="victory" style="color:#f4d58d; text-shadow:0 0 20px rgba(214,177,92,.85);">TIMED TRIAL COMPLETE</h1><div style="margin:20px 0; padding:15px; background:rgba(255,255,255,.05); border-radius:8px; border:1px solid rgba(214,177,92,.35);"><p>Room Reached: <strong>${room}</strong></p><p>Accuracy: <strong>${accuracy}%</strong> | Best Streak: <strong>${maxStreak}</strong></p><p>Total Attempts: <strong>${totalAttempts}</strong> | Setbacks: <strong>${timedSetbacks}</strong></p></div><button onclick="location.reload()">Retry Timed Trial</button><button onclick="returnToModeSelectFromRun()">Battle Menu</button></div>`;}
+function startTimedModeClock(){
+    timedModeEndTime = Date.now() + timedModeDurationMs;
+
+    const hud = document.getElementById("timedModeHud");
+    if(hud) hud.style.display = "flex";
+
+    updateTimedModeClock();
+
+    if(timedModeTimerInterval){
+        clearInterval(timedModeTimerInterval);
+    }
+
+    timedModeTimerInterval = setInterval(updateTimedModeClock, 250);
+}
+
+function stopTimedModeClock(){
+    if(timedModeTimerInterval){
+        clearInterval(timedModeTimerInterval);
+        timedModeTimerInterval = null;
+    }
+
+    const hud = document.getElementById("timedModeHud");
+    if(hud) hud.style.display = "none";
+
+    const timerDisplay = document.getElementById("timerDisplay");
+    if(timerDisplay){
+        timerDisplay.classList.remove("timer-warning");
+        timerDisplay.innerText = "10:00";
+    }
+}
+
+function updateTimedModeClock(){
+    if(gameMode !== "timed" || !timedModeEndTime) return;
+
+    const remainingMs = Math.max(0, timedModeEndTime - Date.now());
+    const totalSeconds = Math.ceil(remainingMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    const timerDisplay = document.getElementById("timerDisplay");
+    if(timerDisplay){
+        timerDisplay.innerText = `${minutes}:${String(seconds).padStart(2, "0")}`;
+        timerDisplay.classList.toggle("timer-warning", remainingMs <= 60 * 1000);
+    }
+
+    if(remainingMs <= 0){
+        endTimedModeRun();
+    }
+}
+
+function endTimedModeRun(){
+    if(gameMode !== "timed") return;
+
+    stopTimedModeClock();
+    gameMode = "timed-complete";
+
+    const accuracy = totalAttempts > 0
+        ? Math.round((correctAnswers / totalAttempts) * 100)
+        : 0;
+
+    const bestRoom = Number(localStorage.getItem("nationalLedgerTimedBestRoom") || 0);
+    if(timedHighestRoom > bestRoom){
+        localStorage.setItem("nationalLedgerTimedBestRoom", String(timedHighestRoom));
+    }
+
+    localStorage.setItem("nationalLedgerTimedLastRoom", String(room));
+    localStorage.setItem("nationalLedgerTimedLastHighestRoom", String(timedHighestRoom));
+    localStorage.setItem("nationalLedgerTimedLastAccuracy", String(accuracy));
+    localStorage.setItem("nationalLedgerTimedLastAttempts", String(totalAttempts));
+    localStorage.setItem("nationalLedgerTimedLastStreak", String(maxStreak));
+    localStorage.setItem("nationalLedgerTimedLastSetbacks", String(timedSetbacks));
+
+    sendGameData({
+        runID: runID,
+        game: "The National Ledger",
+        event: "timed_complete",
+        user: username,
+        email: studentEmail,
+        room: room,
+        questionId: 0,
+        correct: 1,
+        tag: "",
+        type: "",
+        objective: "",
+        responseTime: 0,
+        attempt: totalAttempts,
+        streak: streak,
+        elapsedTime: startTime ? (Date.now() - startTime) : 0,
+        adaptiveMode: "timed_complete",
+        totalTime: timedModeDurationMs,
+        accuracy: accuracy / 100,
+        maxStreak: maxStreak,
+        totalAttempts: totalAttempts
+    });
+
+    document.getElementById("bossMessage").innerText = "";
+    document.getElementById("formulaHint").innerText = "";
+    document.getElementById("artifactDrop").style.display = "none";
+    document.getElementById("questionImageBox").style.display = "none";
+
+    document.getElementById("question").innerHTML = `
+        <span class="boss-title">TIME EXPIRED</span>
+        <div class="boss-q">
+            You reached as far as Room ${timedHighestRoom}.<br><br>
+            Final Room: ${room}<br>
+            Accuracy: ${accuracy}%<br>
+            Total Attempts: ${totalAttempts}<br>
+            Best Streak: ${maxStreak}<br>
+            Setbacks Taken: ${timedSetbacks}
+        </div>
+    `;
+
+    document.getElementById("answers").innerHTML = `
+        <button class="continue-btn" onclick="restartTimedMode()">Retry Timed Trial</button>
+        <button class="continue-btn" onclick="returnToModeSelectFromRun()">Choose Another Ledger Run</button>
+    `;
+
+    document.getElementById("message").innerText = "The trial ends. The Ledger records the result.";
+}
+
+function restartTimedMode(){
+    gameMode = "timed";
+    resetRunStateForNewMode();
+    startSelectedMode("timed");
+}
 function getDifficultyForMode(){if(gameMode==="exam"||gameMode==="timed")return(room<=10)?"easy":(room<=20)?"medium":"hard";if(gameMode==="legendary")return(room===10||room===20||room===30)?"legendaryBoss":"legendary";return(room<=9)?"easy":(room===10)?"easyBoss":(room<=19)?"medium":(room===20)?"mediumBoss":(room<=29)?"hard":"finalBoss";}
 
 // =============================================
@@ -4862,10 +4983,17 @@ const microSkillBridgePools = {
 // This function ensures fairness in answer order.
 // =============================================   
 
-// Legendary mode is wired now. The National Ledger legendary question pool will be upgraded later.
-// Until then, it falls back to the existing hard/final boss material so the mode shell can be tested safely.
-if(!questionBanks.legendary || questionBanks.legendary.length === 0){ questionBanks.legendary = questionBanks.hard || questionBanks.medium || questionBanks.easy || []; }
-if(!questionBanks.legendaryBoss || questionBanks.legendaryBoss.length === 0){ questionBanks.legendaryBoss = questionBanks.finalBoss || questionBanks.mediumBoss || questionBanks.easyBoss || []; }
+// Legendary mode uses dedicated legendary and legendaryBoss pools.
+// Keep these guards only as emergency protection in case a future edit accidentally empties a pool.
+if(!questionBanks.legendary || questionBanks.legendary.length === 0){
+    console.warn("Legendary pool is empty. Falling back to hard questions.");
+    questionBanks.legendary = questionBanks.hard || questionBanks.medium || questionBanks.easy || [];
+}
+
+if(!questionBanks.legendaryBoss || questionBanks.legendaryBoss.length === 0){
+    console.warn("Legendary boss pool is empty. Falling back to final boss questions.");
+    questionBanks.legendaryBoss = questionBanks.finalBoss || questionBanks.mediumBoss || questionBanks.easyBoss || [];
+}
 
 function shuffleOptions(question){
     let q = {
@@ -4878,7 +5006,13 @@ function shuffleOptions(question){
         tag: question.tag,
         type: question.type,
         objective: question.objective,
-        image: question.image
+        image: question.image,
+        difficulty: question.difficulty,
+        conceptCluster: question.conceptCluster,
+        primarySkill: question.primarySkill,
+        secondarySkills: question.secondarySkills ? [...question.secondarySkills] : [],
+        repairSkill: question.repairSkill,
+        commonError: question.commonError
     };
 
     let correct = q.options[q.a];
@@ -4889,7 +5023,6 @@ function shuffleOptions(question){
     }
 
     q.a = q.options.indexOf(correct);
-
     return q;
 }
 
@@ -5370,7 +5503,7 @@ function loadQuestion() {
 
     // 1. Determine Difficulty and Boss Status
 if(gameMode === "timed" && timedModeEndTime && Date.now() >= timedModeEndTime){
-    showTimedResults();
+    endTimedModeRun();
     return;
 }
 
@@ -5936,25 +6069,27 @@ if(remediationState.active){
          bossPool = [];
            
         // Boss defeated (artifact unlocks)
-        if(room === 10){
+        if(modeAllowsRealmProgress()){
+    if(room === 10){
         document.getElementById("vaultSeal").classList.add("unlocked");
         localStorage.setItem("vaultSeal", "true");
         showArtifact(artifacts.seal.img, artifacts.seal.title, artifacts.seal.text);
-        }
+    }
 
-        if(room === 20){
+    if(room === 20){
         document.getElementById("vaultPrism").classList.add("unlocked");
         localStorage.setItem("vaultPrism", "true");
         showArtifact(artifacts.prism.img, artifacts.prism.title, artifacts.prism.text);
-        }
+    }
 
-        if(room === 30){
+    if(room === 30){
         document.getElementById("vaultCrown").classList.add("unlocked");
         localStorage.setItem("vaultCrown", "true");
         showArtifact(artifacts.crown.img, artifacts.crown.title, artifacts.crown.text);
-        }
+    }
+}
 
-// ... (Inside the Boss Victory check)
+	// ... (Inside the Boss Victory check)
         showKnowledgeRoom(room);
         bossHealth = 3;
         bossPool = []; // Clear the pool so the next boss is fresh
@@ -5966,10 +6101,19 @@ if(remediationState.active){
     // AND it wasn't a Boss Room (or a Detour).
    msgElement.innerHTML = "";
    room++;
+   timedHighestRoom = Math.max(timedHighestRoom, Math.min(room, 30));
    saveGameState();
+   localStorage.setItem("gauntletRoom", room);
+
+   if(gameMode === "timed" && timedModeEndTime && Date.now() >= timedModeEndTime){
+       endTimedModeRun();
+       return;
+   }
+
    showHallwayTransition(currentQuestion.feedback);
    return;
-    }      
+    }  
+	
 // =============================================
 // ❌ WRONG ANSWER BLOCK — ALL FAILURE LOGIC
 // =============================================
