@@ -1792,6 +1792,30 @@ TIP:
   background:rgba(255,255,255,.08);
 }
  
+
+
+/* =========================================
+   UPGRADE: MODE SELECT, TIMED TRIAL, MODALS
+   National Ledger version
+========================================= */
+.return-menu-btn{position:absolute;top:12px;right:12px;padding:6px 12px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#f3ead2;background:linear-gradient(180deg,#4a3320,#11100d);border:1px solid rgba(214,177,92,.34);border-radius:6px;cursor:pointer;box-shadow:0 0 10px rgba(214,177,92,.22), inset 0 0 7px rgba(0,0,0,.72);transition:all .15s ease;}
+.return-menu-btn:hover{color:#f4d58d;border-color:rgba(240,199,94,.62);transform:translateY(-1px);}
+.mode-select-screen{position:fixed;inset:0;z-index:110;display:none;align-items:center;justify-content:center;padding:30px;background:linear-gradient(rgba(4,5,5,.32),rgba(4,5,5,.78)),url('question_background_image.png');background-size:cover;background-position:center;}
+.mode-select-panel{width:min(1120px,100%);padding:28px;border-radius:20px;background:rgba(12,18,18,.88);border:1px solid rgba(214,177,92,.38);box-shadow:0 0 36px rgba(0,0,0,.82),0 0 44px rgba(214,177,92,.18),inset 0 0 36px rgba(0,0,0,.62);text-align:center;}
+.mode-title{margin:0;font-size:clamp(38px,5vw,68px);letter-spacing:4px;color:#f4d58d;text-shadow:0 0 14px rgba(214,177,92,.68),0 3px 8px rgba(0,0,0,.9);}
+.mode-subtitle{margin:8px auto 26px;color:#d8c7a0;font-size:20px;}
+.mode-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;}
+.mode-card{min-height:330px;padding:0;overflow:hidden;border-radius:18px;border:1px solid rgba(214,177,92,.30);background:rgba(12,18,18,.94);color:#f3ead2;cursor:pointer;display:flex;flex-direction:column;text-align:left;box-shadow:0 0 22px rgba(0,0,0,.68),inset 0 0 18px rgba(0,0,0,.58);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;}
+.mode-card:hover{transform:translateY(-6px) scale(1.02);border-color:rgba(240,199,94,.78);box-shadow:0 0 28px rgba(214,177,92,.32),inset 0 0 18px rgba(0,0,0,.62);}
+.mode-card img{width:100%;height:220px;object-fit:cover;border-bottom:1px solid rgba(240,199,94,.22);background:linear-gradient(180deg,rgba(65,95,78,.4),rgba(4,5,5,.98));}
+.mode-card-title{display:block;padding:16px 16px 8px;font-size:21px;font-weight:700;letter-spacing:1px;color:#f4d58d;text-align:center;}
+.mode-card-text{display:block;padding:6px 20px 22px;font-size:15px;line-height:1.35;color:rgba(243,234,210,.86);text-align:left;}
+.mode-back-btn{margin-top:18px;min-width:140px;}
+.timed-mode-hud{margin:8px auto 12px;padding:8px 14px;width:fit-content;border-radius:999px;align-items:center;gap:12px;background:linear-gradient(180deg,rgba(42,74,64,.75),rgba(4,5,5,.96));border:1px solid rgba(240,199,94,.48);box-shadow:0 0 16px rgba(214,177,92,.24),inset 0 0 12px rgba(0,0,0,.72);}
+.timer-label{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#d8c7a0;}.timer-display{font-size:22px;font-weight:700;letter-spacing:1px;color:#f4d58d;text-shadow:0 0 10px rgba(214,177,92,.62);}.timer-warning{animation:timerWarningPulse .75s ease-in-out infinite alternate;}@keyframes timerWarningPulse{from{transform:scale(1);}to{transform:scale(1.08);text-shadow:0 0 14px rgba(248,113,113,.9),0 0 24px rgba(240,199,94,.42);}}
+.game-modal{position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(4,5,5,.72);backdrop-filter:blur(6px);}.game-modal-card{width:min(540px,100%);padding:28px;border-radius:18px;background:radial-gradient(circle at top,rgba(214,177,92,.18),rgba(42,74,64,.72) 45%,rgba(4,5,5,.98));border:1px solid rgba(240,199,94,.42);box-shadow:0 0 34px rgba(0,0,0,.88),0 0 38px rgba(214,177,92,.22),inset 0 0 30px rgba(0,0,0,.72);text-align:center;}.game-modal-card h2{margin:0 0 12px;color:#f4d58d;font-size:30px;letter-spacing:2px;text-transform:uppercase;}.game-modal-card p{margin:0 0 24px;color:#f3ead2;font-size:18px;line-height:1.45;}.game-modal-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;}.secondary-modal-btn{color:#f3ead2;border-color:rgba(214,177,92,.42);}
+@media(max-width:900px){.mode-grid{grid-template-columns:1fr 1fr;}}@media(max-width:560px){.mode-select-screen{padding:14px;align-items:flex-start;overflow-y:auto;}.mode-grid{grid-template-columns:1fr;}.mode-card{min-height:250px;}.mode-card img{height:145px;}}@media(max-width:768px){.fullscreenBtn,.return-menu-btn{display:none!important;}.answers{display:grid;grid-template-columns:1fr 1fr;gap:6px;}.answers button{font-size:13px;min-height:52px;padding:10px;}}
+
 </style>
 </head>
 
@@ -1866,15 +1890,30 @@ Respect structure strictly.
     <h1 class="title">THE NATIONAL LEDGER</h1>
     <h2 class="subtitle">Measure. Trace. Balance.</h2>
     <input id="emailInput" type="email" placeholder="Enter your school email" class="name-input">
-    <button class="start-btn" onclick="startNewRun()">ENTER THE LEDGER</button>
+    <button class="start-btn" onclick="showModeSelect()">ENTER THE LEDGER</button>
     <button id="continueRunBtn" class="start-btn secondary-start-btn" onclick="continueSavedRun()" style="display:none;">
-        CONTINUE LEDGER RUN
+        CONTINUE STANDARD RUN
     </button>
+  </div>
+</div>
+
+<div id="modeSelectScreen" class="mode-select-screen" style="display:none;">
+  <div class="mode-select-panel">
+    <h1 class="mode-title">CHOOSE YOUR LEDGER RUN</h1>
+    <p class="mode-subtitle">Select how you want to enter The National Ledger.</p>
+    <div class="mode-grid">
+      <button class="mode-card" onclick="startSelectedMode('standard')"><img src="mode_standard.png" alt="" aria-hidden="true"><span class="mode-card-title">Standard Campaign</span><span class="mode-card-text">Full 30-room run with bosses, artifacts, setbacks, save status, and Realm progress.</span></button>
+      <button class="mode-card" onclick="startSelectedMode('timed')"><img src="mode_timed.png" alt="" aria-hidden="true"><span class="mode-card-title">Timed Trial</span><span class="mode-card-text">Ten minutes. Correct answers advance. Misses push you back. The clock does not care.</span></button>
+      <button class="mode-card" onclick="startSelectedMode('exam')"><img src="mode_exam.png" alt="" aria-hidden="true"><span class="mode-card-title">Exam Drill</span><span class="mode-card-text">No bosses. No artifacts. No Realm progress. Just adaptive practice.</span></button>
+      <button class="mode-card" onclick="startSelectedMode('legendary')"><img src="mode_legendary.png" alt="" aria-hidden="true"><span class="mode-card-title">Legendary Mode</span><span class="mode-card-text">Full campaign shell. Legendary question pool can be upgraded after the engine work is finished.</span></button>
+    </div>
+    <button class="mode-back-btn" onclick="returnToTitleScreen()">BACK</button>
   </div>
 </div>
 
 <div class="dungeon-container">
     <button class="fullscreenBtn" onclick="goFullscreen()">FULLSCREEN</button>
+	<button id="returnMenuBtn" class="return-menu-btn" onclick="confirmReturnToModeMenu()">BATTLE MENU</button>
 	<button id="soundToggle" class="sound-toggle" onclick="toggleGameSound()" aria-label="Toggle sound">Sound On</button>
 
 <!-- =========================================
@@ -1912,16 +1951,16 @@ or simplify this section.
             <h3>Acquired Artifacts</h3>
             <div class="vaultRow">
                 <div id="vaultSeal" class="artifactSlot">
-                    <img src="seal.png" alt="Seal of True Measures">
-                    <span>Seal of True Measures</span>
+                    <img src="seal.png" alt="Registrar’s Seal">
+                    <span>Registrar’s Seal</span>
                 </div>
                 <div id="vaultPrism" class="artifactSlot">
-                    <img src="prism.png" alt="CPI Prism">
-                    <span>CPI Prism</span>
+                    <img src="prism.png" alt="Warden’s Prism">
+                    <span>Warden’s Prism</span>
                 </div>
                 <div id="vaultCrown" class="artifactSlot">
-                    <img src="crown.png" alt="Productivity Crown">
-                    <span>Productivity Crown</span>
+                    <img src="crown.png" alt="Comptroller’s Crown">
+                    <span>Comptroller’s Crown</span>
                 </div>
             </div>
         </div>
@@ -1947,6 +1986,10 @@ or simplify this section.
                 </div>
 
                 <div id="streakDisplay"></div>
+                <div id="timedModeHud" class="timed-mode-hud" style="display:none;">
+                    <span class="timer-label">Timed Trial</span>
+                    <span id="timerDisplay" class="timer-display">10:00</span>
+                </div>
                 <p id="bossMessage"></p>
 
                 <div id="questionContainer">
@@ -1960,13 +2003,18 @@ or simplify this section.
 
                 <!-- Artifact reward popup (triggered after boss victories) -->
                 <div id="artifactDrop" style="display:none;">
-                    <img id="artifactImage" width="96">
+                    <img id="artifactImage" width="96" alt="">
                     <h3 id="artifactTitle"></h3>
                     <p id="artifactText"></p>
                 </div>
             </div>
         </div>
     </div>
+</div>
+
+
+<div id="gameModal" class="game-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="gameModalTitle">
+  <div class="game-modal-card"><h2 id="gameModalTitle">Ledger Warning</h2><p id="gameModalText"></p><div class="game-modal-actions"><button id="gameModalConfirm" class="continue-btn">Continue</button><button id="gameModalCancel" class="continue-btn secondary-modal-btn" style="display:none;">Cancel</button></div></div>
 </div>
 
 <!-- =========================================
@@ -2135,19 +2183,23 @@ let usedQuestions = {
     medium: [],
     hard: [],
     elite: [],
+    legendary: [],
     easyBoss: [],
     mediumBoss: [],
     finalBoss: [],
+    legendaryBoss: [],
 };
 let questionHistory = {
     easy: [],
     medium: [],
     hard: [],
     elite: [],
+    legendary: [],
     calculation: [],
     easyBoss: [],
     mediumBoss: [],
     finalBoss: [],
+    legendaryBoss: [],
 };
 
 const SAVE_KEY = "nationalLedgerSave_v1";
@@ -2157,7 +2209,23 @@ const REALM_COMPLETE_KEY = "economicRealm_nationalLedger_complete";
 const REALM_STATUS_KEY = "economicRealm_nationalLedger_status";
 const REALM_ROOM_KEY = "economicRealm_nationalLedger_room";
 
+let gameMode = "standard";
+let timedModeDurationMs = 10 * 60 * 1000;
+let timedModeEndTime = null;
+let timedModeTimerInterval = null;
+let timedHighestRoom = 1;
+let timedSetbacks = 0;
+
+function modeAllowsSave(){ return gameMode === "standard" || gameMode === "legendary"; }
+function modeAllowsRealmProgress(){ return gameMode === "standard"; }
+function getSaveKey(){ return `${SAVE_KEY}_${gameMode || "standard"}`; }
+function isBossRoomForMode(r){ if(gameMode === "exam" || gameMode === "timed") return false; return r === 10 || r === 20 || r === 30; }
+function getModeDisplayName(){ if(gameMode === "timed") return "Timed Trial"; if(gameMode === "exam") return "Exam Drill"; if(gameMode === "legendary") return "Legendary Mode"; return "Standard Campaign"; }
+
+
 function saveGameState(){
+    if(!modeAllowsSave()) return;
+
     const saveData = {
         room,
         bossHealth,
@@ -2169,6 +2237,7 @@ function saveGameState(){
         username,
         studentEmail,
         runID,
+        gameMode,
         conceptMemory,
         masteryState,
         adaptiveMode,
@@ -2188,11 +2257,13 @@ function saveGameState(){
         }
     };
 
-    localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+    localStorage.setItem(getSaveKey(), JSON.stringify(saveData));
     localStorage.setItem("gauntletRoom", String(room));
-    localStorage.setItem(REALM_STARTED_KEY, "true");
-    localStorage.setItem(REALM_STATUS_KEY, "contested");
-    localStorage.setItem(REALM_ROOM_KEY, String(room));
+    if(modeAllowsRealmProgress()){
+        localStorage.setItem(REALM_STARTED_KEY, "true");
+        localStorage.setItem(REALM_STATUS_KEY, "contested");
+        localStorage.setItem(REALM_ROOM_KEY, String(room));
+    }
 
     const autosave = document.getElementById("autosave");
     if(autosave){
@@ -2201,7 +2272,7 @@ function saveGameState(){
 }
 
 function loadSavedGame(){
-    const rawSave = localStorage.getItem(SAVE_KEY);
+    const rawSave = localStorage.getItem(getSaveKey());
     if(!rawSave) return false;
 
     try {
@@ -2218,6 +2289,7 @@ function loadSavedGame(){
         username = saveData.username || username || "";
         studentEmail = saveData.studentEmail || studentEmail || "";
         runID = saveData.runID || runID || "";
+        gameMode = saveData.gameMode || gameMode || "standard";
 
         conceptMemory = saveData.conceptMemory || {};
         masteryState = saveData.masteryState || { byTag: {}, byObjective: {}, bySkill: {}, recent: [] };
@@ -2239,17 +2311,19 @@ function loadSavedGame(){
         return true;
     } catch(error){
         console.warn("Saved game could not be loaded:", error);
-        localStorage.removeItem(SAVE_KEY);
+        localStorage.removeItem(getSaveKey());
         return false;
     }
 }
 
 function clearSavedGame(){
-    localStorage.removeItem(SAVE_KEY);
-    localStorage.removeItem("gauntletRoom");
-    localStorage.removeItem("vaultSeal");
-    localStorage.removeItem("vaultPrism");
-    localStorage.removeItem("vaultCrown");
+    localStorage.removeItem(getSaveKey());
+    if(modeAllowsSave()){
+        localStorage.removeItem("gauntletRoom");
+        localStorage.removeItem("vaultSeal");
+        localStorage.removeItem("vaultPrism");
+        localStorage.removeItem("vaultCrown");
+    }
 }
 
 function generatePseudonymFromEmail(email) {
@@ -3037,17 +3111,17 @@ const TIMING = {
 const artifacts = {
 seal:{
     img:"seal.png",
-    title:"Seal of True Measures",
+    title:"Registrar’s Seal",
     text:"The accounts now hold together. GDP, income, spending, and measurement categories can be read without false signals slipping through."
 },
 prism:{
     img:"prism.png",
-    title:"The CPI Prism",
+    title:"The Warden’s Prism",
     text:"The price level breaks into clearer light. Inflation, cost of living, and real values can now be separated from nominal noise."
 },
 crown:{
     img:"crown.png",
-    title:"The Productivity Crown",
+    title:"The Comptroller’s Crown",
     text:"Growth has its source. Physical capital, human capital, natural resources, and technology rise together as the ledger reaches full power."
 }
 };
@@ -3128,31 +3202,28 @@ function getNationalLedgerBossLine({ isCorrect, tag, type, objective, streak, bo
 // =============================================
 const savedEmail = localStorage.getItem("gauntletEmail");
 const emailInput = document.getElementById("emailInput");
-
-if (savedEmail && emailInput) {
-    emailInput.value = savedEmail;
+if (savedEmail && emailInput) emailInput.value = savedEmail;
+function hasSavedGame(mode = "standard"){ return !!localStorage.getItem(`${SAVE_KEY}_${mode}`); }
+function validateAndStoreEmailForModeSelect(){
+    let inputEmail = document.getElementById("emailInput").value.trim().toLowerCase();
+    if (!inputEmail) { alert("An email is required to enter the Ledger."); return false; }
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(inputEmail)) { alert("Enter a valid email address."); return false; }
+    studentEmail = inputEmail; username = generatePseudonymFromEmail(studentEmail);
+    localStorage.setItem("gauntletEmail", studentEmail); localStorage.setItem("gauntletUser", username); return true;
 }
-
-function hasSavedGame(){
-    return !!localStorage.getItem(SAVE_KEY);
-}
-
-function showContinueButtonIfSaved(){
-    const btn = document.getElementById("continueRunBtn");
-    if(!btn) return;
-
-    btn.style.display = hasSavedGame() ? "block" : "none";
-}
-
-function startNewRun(){
-    clearSavedGame();
-    startGame(false);
-}
-
-function continueSavedRun(){
-    startGame(true);
-}
-
+function showModeSelect(){ if(!validateAndStoreEmailForModeSelect()) return; document.getElementById("startScreen").style.display = "none"; const modeScreen = document.getElementById("modeSelectScreen"); if(modeScreen) modeScreen.style.display = "flex"; }
+function returnToTitleScreen(){ const modeScreen = document.getElementById("modeSelectScreen"); if(modeScreen) modeScreen.style.display = "none"; document.getElementById("startScreen").style.display = "flex"; showContinueButtonIfSaved(); }
+function startSelectedMode(mode){ gameMode = mode || "standard"; localStorage.setItem("nationalLedgerCurrentMode", gameMode); const modeScreen = document.getElementById("modeSelectScreen"); if(modeScreen) modeScreen.style.display = "none"; if(gameMode === "standard"){ startGame(false); return; } resetRunStateForNewMode(); startGame(false); }
+function returnToModeSelectFromRun(){ stopTimedModeClock(); document.getElementById("gameBox").style.display = "none"; document.getElementById("artifactVault").style.display = "none"; document.querySelector(".top-panel").style.display = "none"; document.getElementById("gameShell").style.display = "none"; const modeScreen = document.getElementById("modeSelectScreen"); if(modeScreen) modeScreen.style.display = "flex"; }
+function confirmReturnToModeMenu(){ showGameModal({ title:"Return to Battle Menu?", text:"Standard Campaign progress will be saved. Timed Trial and Exam Drill attempts will end.", confirmText:"Return", cancelText:"Stay", onConfirm:function(){ if(gameMode === "standard" || gameMode === "legendary") saveGameState(); if(gameMode === "timed"){ endTimedAttemptEarly(); return; } returnToModeSelectFromRun(); }}); }
+let activeModalConfirmAction = null; let activeModalCancelAction = null;
+function showGameModal({title="Ledger Warning",text="",confirmText="Continue",cancelText="",onConfirm=null,onCancel=null}={}){ const modal=document.getElementById("gameModal"),titleEl=document.getElementById("gameModalTitle"),textEl=document.getElementById("gameModalText"),confirmBtn=document.getElementById("gameModalConfirm"),cancelBtn=document.getElementById("gameModalCancel"); if(!modal||!titleEl||!textEl||!confirmBtn||!cancelBtn) return; activeModalConfirmAction=onConfirm; activeModalCancelAction=onCancel; titleEl.innerText=title; textEl.innerText=text; confirmBtn.innerText=confirmText; if(cancelText){cancelBtn.innerText=cancelText; cancelBtn.style.display="inline-block";} else cancelBtn.style.display="none"; modal.style.display="flex"; confirmBtn.onclick=function(){const action=activeModalConfirmAction; closeGameModal(); if(typeof action==="function") action();}; cancelBtn.onclick=function(){const action=activeModalCancelAction; closeGameModal(); if(typeof action==="function") action();}; }
+function closeGameModal(){ const modal=document.getElementById("gameModal"); if(modal) modal.style.display="none"; activeModalConfirmAction=null; activeModalCancelAction=null; }
+function endTimedAttemptEarly(){ stopTimedModeClock(); const accuracy=totalAttempts>0?Math.round((correctAnswers/totalAttempts)*100):0; localStorage.setItem("nationalLedgerTimedLastRoom",String(room)); localStorage.setItem("nationalLedgerTimedLastAccuracy",String(accuracy)); localStorage.setItem("nationalLedgerTimedLastAttempts",String(totalAttempts)); localStorage.setItem("nationalLedgerTimedLastStreak",String(maxStreak)); const bestRoom=Number(localStorage.getItem("nationalLedgerTimedBestRoom")||0); if(room>bestRoom) localStorage.setItem("nationalLedgerTimedBestRoom",String(room)); returnToModeSelectFromRun(); }
+function showContinueButtonIfSaved(){ const btn=document.getElementById("continueRunBtn"); if(!btn) return; btn.style.display=hasSavedGame("standard")?"block":"none"; }
+function startNewRun(){ gameMode="standard"; clearSavedGame(); startGame(false); }
+function continueSavedRun(){ gameMode="standard"; startGame(true); }
 showContinueButtonIfSaved();
 // =============================================
 // GAME INITIALIZATION — PARTIAL CUSTOMIZATION
@@ -3200,7 +3271,7 @@ function startGame(shouldResume = false) {
     studentEmail = inputEmail;
     username = generatePseudonymFromEmail(studentEmail);
 
-    const hasSavedRun = shouldResume ? loadSavedGame() : false;
+    const hasSavedRun = shouldResume && modeAllowsSave() ? loadSavedGame() : false;
 
     if(!hasSavedRun){
         bossCheckpoint = 1;
@@ -3210,16 +3281,20 @@ function startGame(shouldResume = false) {
     localStorage.setItem("gauntletEmail", studentEmail);
     localStorage.setItem("gauntletUser", username);
     localStorage.setItem("gauntletRunID", runID);
-    localStorage.setItem(REALM_STARTED_KEY, "true");
-    localStorage.setItem(REALM_STATUS_KEY, "contested");
-    localStorage.setItem(REALM_ROOM_KEY, String(room || 1));
+    localStorage.setItem("nationalLedgerCurrentMode", gameMode);
+    if(modeAllowsRealmProgress()){
+        localStorage.setItem(REALM_STARTED_KEY, "true");
+        localStorage.setItem(REALM_STATUS_KEY, "contested");
+        localStorage.setItem(REALM_ROOM_KEY, String(room || 1));
+    }
 
     sendGameData({
         runID: runID,
         game: "The National Ledger",
         event: hasSavedRun ? "resume" : "start",
         user: username,
-        email: studentEmail
+        email: studentEmail,
+        mode: getModeDisplayName()
     });
 
 // =============================================
@@ -3256,13 +3331,13 @@ function startGame(shouldResume = false) {
         localStorage.setItem(REALM_ROOM_KEY, "1");
 
         questionHistory = {
-            easy: [], medium: [], hard: [], elite: [], calculation: [],
-            easyBoss: [], mediumBoss: [], finalBoss: []
+            easy: [], medium: [], hard: [], elite: [], legendary: [], calculation: [],
+            easyBoss: [], mediumBoss: [], finalBoss: [], legendaryBoss: []
         };
 
         usedQuestions = {
-            easy: [], medium: [], hard: [], elite: [],
-            easyBoss: [], mediumBoss: [], finalBoss: []
+            easy: [], medium: [], hard: [], elite: [], legendary: [],
+            easyBoss: [], mediumBoss: [], finalBoss: [], legendaryBoss: []
         };
     }
     
@@ -3271,9 +3346,16 @@ function startGame(shouldResume = false) {
 // =============================================
 // Shows main game elements and restores vault visuals
     document.getElementById("startScreen").style.display = "none";
+    const modeScreen = document.getElementById("modeSelectScreen");
+    if(modeScreen) modeScreen.style.display = "none";
+    document.querySelector(".top-panel").style.display = "flex";
+    document.getElementById("gameShell").style.display = "flex";
     document.getElementById("gameBox").style.display = "block";
     document.getElementById("artifactVault").style.display = "block";
     document.querySelectorAll(".torch").forEach(t => t.style.display = "block");
+    const timedHud = document.getElementById("timedModeHud");
+    if(timedHud) timedHud.style.display = gameMode === "timed" ? "inline-flex" : "none";
+    if(gameMode === "timed") startTimedModeClock();
 
    // =============================================
    // VAULT RESTORE SYSTEM — SAFE WITH MATCHING IDS
@@ -3299,6 +3381,19 @@ function startGame(shouldResume = false) {
     loadQuestion();
 }
 	 
+
+function resetRunStateForNewMode(){
+    room=1; bossHealth=3; bossPool=[]; bossCheckpoint=1; correctAnswers=0; totalAttempts=0; maxStreak=0; streak=0; conceptMemory={}; masteryState={byTag:{},byObjective:{},bySkill:{},recent:[]}; adaptiveMode="support"; tagHistory=[]; lastTypes=[]; rapidGuessHistory=[]; rapidGuessWarnings=0; rapidGuessLocked=false; timedHighestRoom=1; timedSetbacks=0; resetRemediationState();
+    questionHistory={easy:[],medium:[],hard:[],elite:[],legendary:[],calculation:[],easyBoss:[],mediumBoss:[],finalBoss:[],legendaryBoss:[]};
+    usedQuestions={easy:[],medium:[],hard:[],elite:[],legendary:[],easyBoss:[],mediumBoss:[],finalBoss:[],legendaryBoss:[]};
+    if(gameMode!=="standard"){localStorage.removeItem("gauntletRoom");localStorage.removeItem("vaultSeal");localStorage.removeItem("vaultPrism");localStorage.removeItem("vaultCrown");}
+}
+function startTimedModeClock(){stopTimedModeClock();timedModeEndTime=Date.now()+timedModeDurationMs;updateTimedModeClock();timedModeTimerInterval=setInterval(updateTimedModeClock,250);}
+function stopTimedModeClock(){if(timedModeTimerInterval){clearInterval(timedModeTimerInterval);timedModeTimerInterval=null;}}
+function updateTimedModeClock(){if(gameMode!=="timed"||!timedModeEndTime)return;const remaining=Math.max(0,timedModeEndTime-Date.now());const totalSeconds=Math.ceil(remaining/1000);const minutes=Math.floor(totalSeconds/60);const seconds=totalSeconds%60;const display=document.getElementById("timerDisplay");if(display){display.innerText=`${minutes}:${String(seconds).padStart(2,"0")}`;display.classList.toggle("timer-warning",remaining<=60000);}if(remaining<=0){stopTimedModeClock();showTimedResults();}}
+function showTimedResults(){const accuracy=totalAttempts>0?Math.round((correctAnswers/totalAttempts)*100):0;localStorage.setItem("nationalLedgerTimedLastRoom",String(room));localStorage.setItem("nationalLedgerTimedLastAccuracy",String(accuracy));localStorage.setItem("nationalLedgerTimedLastAttempts",String(totalAttempts));localStorage.setItem("nationalLedgerTimedLastStreak",String(maxStreak));const bestRoom=Number(localStorage.getItem("nationalLedgerTimedBestRoom")||0);if(room>bestRoom)localStorage.setItem("nationalLedgerTimedBestRoom",String(room));document.getElementById("gameBox").innerHTML=`<div style="text-align:center; padding:30px;"><h1 class="victory" style="color:#f4d58d; text-shadow:0 0 20px rgba(214,177,92,.85);">TIMED TRIAL COMPLETE</h1><div style="margin:20px 0; padding:15px; background:rgba(255,255,255,.05); border-radius:8px; border:1px solid rgba(214,177,92,.35);"><p>Room Reached: <strong>${room}</strong></p><p>Accuracy: <strong>${accuracy}%</strong> | Best Streak: <strong>${maxStreak}</strong></p><p>Total Attempts: <strong>${totalAttempts}</strong> | Setbacks: <strong>${timedSetbacks}</strong></p></div><button onclick="location.reload()">Retry Timed Trial</button><button onclick="returnToModeSelectFromRun()">Battle Menu</button></div>`;}
+function getDifficultyForMode(){if(gameMode==="exam"||gameMode==="timed")return(room<=10)?"easy":(room<=20)?"medium":"hard";if(gameMode==="legendary")return(room===10||room===20||room===30)?"legendaryBoss":"legendary";return(room<=9)?"easy":(room===10)?"easyBoss":(room<=19)?"medium":(room===20)?"mediumBoss":(room<=29)?"hard":"finalBoss";}
+
 // =============================================
 // INPUT SHORTCUT — SAFE TO KEEP OR REMOVE
 // =============================================
@@ -3309,10 +3404,10 @@ document.getElementById("emailInput").addEventListener("keypress", function(even
     if (event.key === "Enter") {
         event.preventDefault();
 
-        if(hasSavedGame()){
+        if(hasSavedGame("standard")){
             continueSavedRun();
         } else {
-            startNewRun();
+            showModeSelect();
         }
     }
 });
@@ -3910,6 +4005,12 @@ equity:[
 //
 // This function ensures fairness in answer order.
 // =============================================   
+
+// Legendary mode is wired now. The National Ledger legendary question pool will be upgraded later.
+// Until then, it falls back to the existing hard/final boss material so the mode shell can be tested safely.
+if(!questionBanks.legendary || questionBanks.legendary.length === 0){ questionBanks.legendary = questionBanks.hard || questionBanks.medium || questionBanks.easy || []; }
+if(!questionBanks.legendaryBoss || questionBanks.legendaryBoss.length === 0){ questionBanks.legendaryBoss = questionBanks.finalBoss || questionBanks.mediumBoss || questionBanks.easyBoss || []; }
+
 function shuffleOptions(question){
     let q = {
         id: question.id,
@@ -4412,15 +4513,15 @@ function loadQuestion() {
 	imageBox.style.display = "none";
 
     // 1. Determine Difficulty and Boss Status
-    let diff = (room <= 9) ? "easy"
-             : (room === 10) ? "easyBoss"
-             : (room <= 19) ? "medium"
-             : (room === 20) ? "mediumBoss"
-             : (room <= 25) ? "hard"
-             : (room <= 29) ? "calculation"
-             : "finalBoss";
+    if((gameMode === "exam" || gameMode === "timed") && room > 30){
+        if(gameMode === "timed") showTimedResults();
+        else handleVictory();
+        return;
+    }
 
-   const isBoss = diff.includes("Boss");
+    let diff = getDifficultyForMode();
+
+   const isBoss = diff.includes("Boss") && isBossRoomForMode(room);
 
    // Only reset health if the bossPool is currently empty (meaning a new encounter)
      if (isBoss && (!bossPool || bossPool.length === 0)) {
@@ -5105,11 +5206,15 @@ if (!remediationState.active && currentQuestion.tag && shouldTriggerDetour(curre
 // Never fall back behind the most recently cleared boss gate
 	room = Math.max(bossCheckpoint, newRoom);
 
+    if(gameMode === "timed") timedSetbacks++;
     saveGameState();
 
-    alert(`Incorrect! You trip in the darkness and tumble back to Room ${room}.`);
-
-    loadQuestion();
+    showGameModal({
+        title: "Ledger Entry Rejected",
+        text: `Incorrect. The ledger throws you back to Room ${room}.`,
+        confirmText: "Continue",
+        onConfirm: loadQuestion
+    });
 }
 
 // =============================================
@@ -5473,10 +5578,12 @@ function generateCode(name, acc, streak, total){
 // This is a PRESENTATION layer, not a logic layer.
 // =============================================     
 function handleVictory() {
-    localStorage.setItem(REALM_STARTED_KEY, "true");
-    localStorage.setItem(REALM_COMPLETE_KEY, "true");
-    localStorage.setItem(REALM_STATUS_KEY, "restored");
-    localStorage.setItem(REALM_ROOM_KEY, "30");
+    if(modeAllowsRealmProgress()){
+        localStorage.setItem(REALM_STARTED_KEY, "true");
+        localStorage.setItem(REALM_COMPLETE_KEY, "true");
+        localStorage.setItem(REALM_STATUS_KEY, "restored");
+        localStorage.setItem(REALM_ROOM_KEY, "30");
+    }
 
     clearSavedGame();
 
@@ -5775,6 +5882,7 @@ function sendGameData(data) {
 </script>
 </body>
 </html>
+
 
 
 
