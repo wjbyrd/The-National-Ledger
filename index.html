@@ -5543,7 +5543,7 @@ if((gameMode === "timed" || gameMode === "exam") && room > 30){
     document.getElementById("areaDisplay").innerText = `${getAreaName(room)} (${room}/30)`;
     document.getElementById("srAnnouncements").innerText = `Entering ${getAreaName(room)}. Room ${room} of 30.`;
 
- // 3. Select the Question
+// 3. Select the Question
 if (isBoss) {
     // 1. If it's a new fight, build a three-question boss pool
     if (bossHealth === 3 || !bossPool || bossPool.length === 0) {
