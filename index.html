@@ -2219,11 +2219,52 @@ let timedModeTimerInterval = null;
 let timedHighestRoom = 1;
 let timedSetbacks = 0;
 
+// =============================================
+// REALM ACHIEVEMENT TRACKING
+// These keys are read by The Economic Realm hub.
+// Keep this small and boring. Boring means it works.
+// =============================================
+let resumedSavedRunThisSession = false;
+let bossMistakeCountThisRun = 0;
+let bossesDefeatedThisRun = 0;
+
 function modeAllowsSave(){ return gameMode === "standard" || gameMode === "legendary"; }
 function modeAllowsRealmProgress(){ return gameMode === "standard"; }
 function getSaveKey(){ return `${SAVE_KEY}_${gameMode || "standard"}`; }
 function isBossRoomForMode(r){ if(gameMode === "exam" || gameMode === "timed") return false; return r === 10 || r === 20 || r === 30; }
 function getModeDisplayName(){ if(gameMode === "timed") return "Timed Trial"; if(gameMode === "exam") return "Exam Drill"; if(gameMode === "legendary") return "Legendary Mode"; return "Standard Campaign"; }
+
+function addRealmStat(key, amount = 1){
+    const current = parseInt(localStorage.getItem(key) || "0", 10);
+    localStorage.setItem(key, String((Number.isFinite(current) ? current : 0) + amount));
+}
+
+function setRealmFlag(key){
+    localStorage.setItem(key, "true");
+}
+
+function updateRealmMaxStat(key, value){
+    const numericValue = Number(value || 0);
+    const current = parseInt(localStorage.getItem(key) || "0", 10);
+
+    if(Number.isFinite(numericValue) && numericValue > (Number.isFinite(current) ? current : 0)){
+        localStorage.setItem(key, String(numericValue));
+    }
+}
+
+function recordTimedTrialAchievementStats(accuracy, reachedRoom){
+    const safeAccuracy = Number.isFinite(Number(accuracy)) ? Number(accuracy) : 0;
+    const safeRoom = Number.isFinite(Number(reachedRoom)) ? Number(reachedRoom) : 0;
+
+    updateRealmMaxStat("nationalLedgerTimedBestRoom", safeRoom);
+    updateRealmMaxStat("nationalLedgerTimedBestAccuracy", safeAccuracy);
+    updateRealmMaxStat("economicRealm_nationalLedger_timedBestRoom", safeRoom);
+    updateRealmMaxStat("economicRealm_nationalLedger_timedBestAccuracy", safeAccuracy);
+
+    if(safeRoom >= 30 && safeAccuracy >= 80){
+        setRealmFlag("economicRealm_nationalLedger_trial_by_clock_complete");
+    }
+}
 
 
 function saveGameState(){
@@ -2252,6 +2293,11 @@ function saveGameState(){
         rapidGuessWarnings,
         rapidGuessLocked,
         savedAt: Date.now(),
+
+        achievementTracking: {
+            bossMistakeCountThisRun,
+            bossesDefeatedThisRun
+        },
 
         artifacts: {
             vaultSeal: localStorage.getItem("vaultSeal") === "true",
@@ -2306,6 +2352,9 @@ function loadSavedGame(){
         rapidGuessHistory = saveData.rapidGuessHistory || [];
         rapidGuessWarnings = Number(saveData.rapidGuessWarnings || 0);
         rapidGuessLocked = !!saveData.rapidGuessLocked;
+
+        bossMistakeCountThisRun = Number(saveData.achievementTracking?.bossMistakeCountThisRun || 0);
+        bossesDefeatedThisRun = Number(saveData.achievementTracking?.bossesDefeatedThisRun || 0);
 
         if(saveData.artifacts?.vaultSeal) localStorage.setItem("vaultSeal", "true");
         if(saveData.artifacts?.vaultPrism) localStorage.setItem("vaultPrism", "true");
@@ -3560,10 +3609,10 @@ function confirmReturnToModeMenu(){ showGameModal({ title:"Return to Battle Menu
 let activeModalConfirmAction = null; let activeModalCancelAction = null;
 function showGameModal({title="Ledger Warning",text="",confirmText="Continue",cancelText="",onConfirm=null,onCancel=null}={}){ const modal=document.getElementById("gameModal"),titleEl=document.getElementById("gameModalTitle"),textEl=document.getElementById("gameModalText"),confirmBtn=document.getElementById("gameModalConfirm"),cancelBtn=document.getElementById("gameModalCancel"); if(!modal||!titleEl||!textEl||!confirmBtn||!cancelBtn) return; activeModalConfirmAction=onConfirm; activeModalCancelAction=onCancel; titleEl.innerText=title; textEl.innerText=text; confirmBtn.innerText=confirmText; if(cancelText){cancelBtn.innerText=cancelText; cancelBtn.style.display="inline-block";} else cancelBtn.style.display="none"; modal.style.display="flex"; confirmBtn.onclick=function(){const action=activeModalConfirmAction; closeGameModal(); if(typeof action==="function") action();}; cancelBtn.onclick=function(){const action=activeModalCancelAction; closeGameModal(); if(typeof action==="function") action();}; }
 function closeGameModal(){ const modal=document.getElementById("gameModal"); if(modal) modal.style.display="none"; activeModalConfirmAction=null; activeModalCancelAction=null; }
-function endTimedAttemptEarly(){ stopTimedModeClock(); const accuracy=totalAttempts>0?Math.round((correctAnswers/totalAttempts)*100):0; localStorage.setItem("nationalLedgerTimedLastRoom",String(room)); localStorage.setItem("nationalLedgerTimedLastAccuracy",String(accuracy)); localStorage.setItem("nationalLedgerTimedLastAttempts",String(totalAttempts)); localStorage.setItem("nationalLedgerTimedLastStreak",String(maxStreak)); const bestRoom=Number(localStorage.getItem("nationalLedgerTimedBestRoom")||0); if(room>bestRoom) localStorage.setItem("nationalLedgerTimedBestRoom",String(room)); returnToModeSelectFromRun(); }
+function endTimedAttemptEarly(){ stopTimedModeClock(); const accuracy=totalAttempts>0?Math.round((correctAnswers/totalAttempts)*100):0; localStorage.setItem("nationalLedgerTimedLastRoom",String(room)); localStorage.setItem("nationalLedgerTimedLastAccuracy",String(accuracy)); localStorage.setItem("nationalLedgerTimedLastAttempts",String(totalAttempts)); localStorage.setItem("nationalLedgerTimedLastStreak",String(maxStreak)); const bestRoom=Number(localStorage.getItem("nationalLedgerTimedBestRoom")||0); if(room>bestRoom) localStorage.setItem("nationalLedgerTimedBestRoom",String(room)); recordTimedTrialAchievementStats(accuracy, room); returnToModeSelectFromRun(); }
 function showContinueButtonIfSaved(){ const btn=document.getElementById("continueRunBtn"); if(!btn) return; btn.style.display=hasSavedGame("standard")?"block":"none"; }
 function startNewRun(){ gameMode="standard"; clearSavedGame(); startGame(false); }
-function continueSavedRun(){ gameMode="standard"; startGame(true); }
+function continueSavedRun(){ gameMode="standard"; resumedSavedRunThisSession = true; startGame(true); }
 showContinueButtonIfSaved();
 // =============================================
 // GAME INITIALIZATION — PARTIAL CUSTOMIZATION
@@ -3614,6 +3663,10 @@ function startGame(shouldResume = false) {
     const hasSavedRun = shouldResume && modeAllowsSave() ? loadSavedGame() : false;
 
     if(!hasSavedRun){
+        resumedSavedRunThisSession = false;
+    }
+
+    if(!hasSavedRun){
         bossCheckpoint = 1;
         runID = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     }
@@ -3659,6 +3712,8 @@ function startGame(shouldResume = false) {
         rapidGuessHistory = [];
         rapidGuessWarnings = 0;
         rapidGuessLocked = false;
+        bossMistakeCountThisRun = 0;
+        bossesDefeatedThisRun = 0;
 
         localStorage.removeItem("gauntletRoom");
 
@@ -3721,7 +3776,7 @@ function startGame(shouldResume = false) {
 	 
 
 function resetRunStateForNewMode(){
-    room=1; bossHealth=3; bossPool=[]; bossCheckpoint=1; correctAnswers=0; totalAttempts=0; maxStreak=0; streak=0; conceptMemory={}; masteryState={byTag:{},byObjective:{},bySkill:{},recent:[]}; adaptiveMode="support"; tagHistory=[]; lastTypes=[]; rapidGuessHistory=[]; rapidGuessWarnings=0; rapidGuessLocked=false; timedHighestRoom=1; timedSetbacks=0; resetRemediationState();
+    room=1; bossHealth=3; bossPool=[]; bossCheckpoint=1; correctAnswers=0; totalAttempts=0; maxStreak=0; streak=0; conceptMemory={}; masteryState={byTag:{},byObjective:{},bySkill:{},recent:[]}; adaptiveMode="support"; tagHistory=[]; lastTypes=[]; rapidGuessHistory=[]; rapidGuessWarnings=0; rapidGuessLocked=false; timedHighestRoom=1; timedSetbacks=0; bossMistakeCountThisRun=0; bossesDefeatedThisRun=0; resetRemediationState();
     questionHistory={easy:[],medium:[],hard:[],elite:[],legendary:[],calculation:[],easyBoss:[],mediumBoss:[],finalBoss:[],legendaryBoss:[]};
     usedQuestions={easy:[],medium:[],hard:[],elite:[],legendary:[],easyBoss:[],mediumBoss:[],finalBoss:[],legendaryBoss:[]};
     if(gameMode!=="standard"){localStorage.removeItem("gauntletRoom");localStorage.removeItem("vaultSeal");localStorage.removeItem("vaultPrism");localStorage.removeItem("vaultCrown");}
@@ -3819,6 +3874,8 @@ function endTimedModeRun(){
     localStorage.setItem("nationalLedgerTimedLastAttempts", String(totalAttempts));
     localStorage.setItem("nationalLedgerTimedLastStreak", String(maxStreak));
     localStorage.setItem("nationalLedgerTimedLastSetbacks", String(timedSetbacks));
+
+    recordTimedTrialAchievementStats(accuracy, timedHighestRoom);
 
     sendGameData({
         runID: runID,
@@ -5692,7 +5749,7 @@ function answer(choice) {
    
     totalAttempts++;
    
-    const isBossRoom = (room === 10 || room === 20 || room === 30);
+    const isBossRoom = isBossRoomForMode(room);
     const msgElement = document.getElementById("message");
     const wizard = document.getElementById("wizardImage");
 const isCorrect = (choice === currentQuestion.a);
@@ -5763,6 +5820,8 @@ recordAdaptiveAttempt(currentQuestion, isCorrect, responseTime);
     if (isCorrect) {
         streak++;
         if (streak > maxStreak) maxStreak = streak;
+        updateRealmMaxStat("economicRealm_bestStreak", maxStreak);
+        updateRealmMaxStat("economicRealm_nationalLedger_bestStreak", maxStreak);
     } else {
         streak = 0;
     }
@@ -5816,6 +5875,8 @@ recordAdaptiveAttempt(currentQuestion, isCorrect, responseTime);
         },200);
 
 		correctAnswers++;
+        addRealmStat("economicRealm_totalCorrectAnswers", 1);
+        addRealmStat("economicRealm_nationalLedger_correctTotal", 1);
         handleStreakVisuals();
        
         // --- STAGED REMEDIATION SUCCESS PATH ---
@@ -5926,6 +5987,10 @@ if(remediationState.active){
          });
            
          bossPool = [];
+
+         if(gameMode === "standard"){
+             bossesDefeatedThisRun++;
+         }
            
         // Boss defeated (artifact unlocks)
         if(modeAllowsRealmProgress()){
@@ -5979,6 +6044,9 @@ if(remediationState.active){
        
     if (isBossRoom) {
         sfxWrong.volume = 0.7;
+        if(gameMode === "standard"){
+            bossMistakeCountThisRun++;
+        }
     } else {
         sfxWrong.volume = 0.5;
     }
@@ -6462,6 +6530,11 @@ function handlePracticeModeComplete(){
         ? Math.round((correctAnswers / totalAttempts) * 100)
         : 0;
 
+    if(gameMode === "exam"){
+        setRealmFlag("economicRealm_examDrillCompleted");
+        setRealmFlag(`economicRealm_${REALM_MISSION_KEY}_exam_complete`);
+    }
+
     sendGameData({
         runID,
         game: "The National Ledger",
@@ -6597,6 +6670,16 @@ function handleVictory() {
     localStorage.setItem(REALM_COMPLETE_KEY, "true");
     localStorage.setItem(REALM_STATUS_KEY, "restored");
     localStorage.setItem(REALM_ROOM_KEY, "30");
+    localStorage.setItem(`economicRealm_${REALM_MISSION_KEY}_artifactsCollected`, "3");
+
+    if(resumedSavedRunThisSession){
+        setRealmFlag(`economicRealm_${REALM_MISSION_KEY}_resume_finish_complete`);
+        setRealmFlag("economicRealm_returnAndRebuild_complete");
+    }
+
+    if(bossesDefeatedThisRun >= 3 && bossMistakeCountThisRun === 0){
+        setRealmFlag(`economicRealm_${REALM_MISSION_KEY}_perfect_calibration_complete`);
+    }
 
     clearSavedGame();
 
@@ -6898,6 +6981,7 @@ function sendGameData(data) {
 </script>
 </body>
 </html>
+
 
 
 
