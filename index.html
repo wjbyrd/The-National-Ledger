@@ -3389,7 +3389,6 @@ function getRemediationQuestion(state){
             }
         }
 
-        const allBridgePool = Object.values(microSkillBridgePools).reduce((all, pool) => all.concat(pool), []);
         const allBridgePool = Object.values(microSkillBridgePools || {})
             .reduce((all, pool) => all.concat(pool), []);
 
