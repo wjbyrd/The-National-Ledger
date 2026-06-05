@@ -6255,7 +6255,9 @@ if(remediationState.active){
            setTimeout(loadQuestion, TIMING.boss);
            return;
         }
+			
          // Boss defeated
+		 recordBossDefeatForAchievements();
          sendGameData({
             runID: runID,
 			game: "The National Ledger",
@@ -6266,10 +6268,6 @@ if(remediationState.active){
          });
            
          bossPool = [];
-
-         if(gameMode === "standard"){
-             bossesDefeatedThisRun++;
-         }
            
         // Boss defeated (artifact unlocks)
         if(modeAllowsRealmProgress()){
