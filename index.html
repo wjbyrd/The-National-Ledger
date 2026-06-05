@@ -6319,14 +6319,11 @@ if(remediationState.active){
 // ❌ WRONG ANSWER BLOCK — ALL FAILURE LOGIC
 // =============================================
        
-    if (isBossRoom) {
-        sfxWrong.volume = 0.7;
-        if(gameMode === "standard"){
-            bossMistakeCountThisRun++;
-        }
-    } else {
-        sfxWrong.volume = 0.5;
-    }
+	if (isBossRoom) {
+   	 sfxWrong.volume = 0.7;
+	} else {
+  	  sfxWrong.volume = 0.5;
+	}
 
     sfxWrong.currentTime = 0;
     sfxWrong.play().catch(() => {});
@@ -6946,7 +6943,6 @@ function handleVictory() {
     localStorage.setItem(REALM_COMPLETE_KEY, "true");
     localStorage.setItem(REALM_STATUS_KEY, "restored");
     localStorage.setItem(REALM_ROOM_KEY, "30");
-    localStorage.setItem(`economicRealm_${REALM_MISSION_KEY}_artifactsCollected`, "3");
 	setMissionArtifactCount(3);
 	checkReturnAndRebuildAchievement();
 	checkPerfectCalibrationAchievement();
