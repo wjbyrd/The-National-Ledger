@@ -2296,6 +2296,12 @@ const REALM_STARTED_KEY = "economicRealm_nationalLedger_started";
 const REALM_COMPLETE_KEY = "economicRealm_nationalLedger_complete";
 const REALM_STATUS_KEY = "economicRealm_nationalLedger_status";
 const REALM_ROOM_KEY = "economicRealm_nationalLedger_room";
+const REALM_TOTAL_CORRECT_KEY = "economicRealm_totalCorrectAnswers";
+const REALM_BEST_STREAK_KEY = "economicRealm_bestStreak";
+const REALM_EXAM_COMPLETE_KEY = "economicRealm_examDrillCompleted";
+const REALM_TRIAL_BY_CLOCK_KEY = "economicRealm_trialByClock";
+const REALM_PERFECT_CALIBRATION_KEY = "economicRealm_perfectCalibration";
+const REALM_RETURN_AND_REBUILD_KEY = "economicRealm_returnAndRebuild";
 
 let gameMode = "standard";
 let timedModeDurationMs = 10 * 60 * 1000;
@@ -2337,17 +2343,70 @@ function updateRealmMaxStat(key, value){
     }
 }
 
+function getMissionAchievementPrefix(){
+    return `economicRealm_${REALM_MISSION_KEY}`;
+}
+
+function recordRealmCorrectAnswer(){
+    addRealmStat(REALM_TOTAL_CORRECT_KEY, 1);
+}
+
+function recordRealmStreak(value){
+    updateRealmMaxStat(REALM_BEST_STREAK_KEY, value);
+    updateRealmMaxStat(`${getMissionAchievementPrefix()}_bestStreak`, value);
+}
+
+function markExamDrillCompleted(){
+    setRealmFlag(REALM_EXAM_COMPLETE_KEY);
+    setRealmFlag(`${getMissionAchievementPrefix()}_exam_complete`);
+}
+
+function recordBossMistakeForAchievements(){
+    if(gameMode === "standard" && isBossRoomForMode(room)){
+        bossMistakeCountThisRun++;
+    }
+}
+
+function recordBossDefeatForAchievements(){
+    if(gameMode === "standard"){
+        bossesDefeatedThisRun++;
+    }
+}
+
+function checkPerfectCalibrationAchievement(){
+    if(gameMode === "standard" && bossesDefeatedThisRun >= 3 && bossMistakeCountThisRun === 0){
+        setRealmFlag(REALM_PERFECT_CALIBRATION_KEY);
+        setRealmFlag(`${getMissionAchievementPrefix()}_perfect_calibration_complete`);
+    }
+}
+
+function checkReturnAndRebuildAchievement(){
+    if(gameMode === "standard" && resumedSavedRunThisSession){
+        setRealmFlag(REALM_RETURN_AND_REBUILD_KEY);
+        setRealmFlag(`${getMissionAchievementPrefix()}_resume_finish_complete`);
+    }
+}
+
+function setMissionArtifactCount(count){
+    localStorage.setItem(`${getMissionAchievementPrefix()}_artifactsCollected`, String(count));
+}
+	 
 function recordTimedTrialAchievementStats(accuracy, reachedRoom){
     const safeAccuracy = Number.isFinite(Number(accuracy)) ? Number(accuracy) : 0;
     const safeRoom = Number.isFinite(Number(reachedRoom)) ? Number(reachedRoom) : 0;
 
     updateRealmMaxStat("nationalLedgerTimedBestRoom", safeRoom);
     updateRealmMaxStat("nationalLedgerTimedBestAccuracy", safeAccuracy);
-    updateRealmMaxStat("economicRealm_nationalLedger_timedBestRoom", safeRoom);
-    updateRealmMaxStat("economicRealm_nationalLedger_timedBestAccuracy", safeAccuracy);
+
+    updateRealmMaxStat("economicRealm_timedBestRoom", safeRoom);
+    updateRealmMaxStat("economicRealm_timedBestAccuracy", safeAccuracy);
+
+    updateRealmMaxStat(`${getMissionAchievementPrefix()}_timedBestRoom`, safeRoom);
+    updateRealmMaxStat(`${getMissionAchievementPrefix()}_timedBestAccuracy`, safeAccuracy);
 
     if(safeRoom >= 30 && safeAccuracy >= 80){
-        setRealmFlag("economicRealm_nationalLedger_trial_by_clock_complete");
+        setRealmFlag(REALM_TRIAL_BY_CLOCK_KEY);
+        setRealmFlag(`${getMissionAchievementPrefix()}_trial_by_clock_complete`);
     }
 }
 
@@ -6039,10 +6098,11 @@ recordAdaptiveAttempt(currentQuestion, isCorrect, responseTime);
     if (isCorrect) {
         streak++;
         if (streak > maxStreak) maxStreak = streak;
-        updateRealmMaxStat("economicRealm_bestStreak", maxStreak);
-        updateRealmMaxStat("economicRealm_nationalLedger_bestStreak", maxStreak);
+        recordRealmCorrectAnswer();
+        recordRealmStreak(streak);
     } else {
         streak = 0;
+		recordBossMistakeForAchievements();
     }
    
     // =============================================
@@ -6749,10 +6809,9 @@ function handlePracticeModeComplete(){
         ? Math.round((correctAnswers / totalAttempts) * 100)
         : 0;
 
-    if(gameMode === "exam"){
-        setRealmFlag("economicRealm_examDrillCompleted");
-        setRealmFlag(`economicRealm_${REALM_MISSION_KEY}_exam_complete`);
-    }
+	if(gameMode === "exam"){
+	    markExamDrillCompleted();
+	}
 
     sendGameData({
         runID,
@@ -6890,15 +6949,9 @@ function handleVictory() {
     localStorage.setItem(REALM_STATUS_KEY, "restored");
     localStorage.setItem(REALM_ROOM_KEY, "30");
     localStorage.setItem(`economicRealm_${REALM_MISSION_KEY}_artifactsCollected`, "3");
-
-    if(resumedSavedRunThisSession){
-        setRealmFlag(`economicRealm_${REALM_MISSION_KEY}_resume_finish_complete`);
-        setRealmFlag("economicRealm_returnAndRebuild_complete");
-    }
-
-    if(bossesDefeatedThisRun >= 3 && bossMistakeCountThisRun === 0){
-        setRealmFlag(`economicRealm_${REALM_MISSION_KEY}_perfect_calibration_complete`);
-    }
+	setMissionArtifactCount(3);
+	checkReturnAndRebuildAchievement();
+	checkPerfectCalibrationAchievement();
 
     clearSavedGame();
 
