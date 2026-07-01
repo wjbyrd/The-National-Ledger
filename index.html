@@ -2165,6 +2165,182 @@ body.game-active #soundToggle {
     transform: none !important;
 }
 	
+
+
+/* =========================================
+   15. POST-BATTLE MASTERY REPORT
+   Student-facing diagnostic after a completed run.
+========================================= */
+.mastery-report-screen{
+    text-align:left;
+    padding:24px;
+    color:#f3ead2;
+}
+
+.mastery-report-title{
+    text-align:center;
+    color:#f4d58d;
+    font-size:32px;
+    letter-spacing:2px;
+    margin:0 0 8px 0;
+    text-shadow:
+        0 0 16px rgba(240,199,94,0.72),
+        0 0 30px rgba(214,177,92,0.20),
+        0 3px 8px rgba(0,0,0,0.92);
+}
+
+.mastery-report-subtitle{
+    text-align:center;
+    color:#d8c7a0;
+    font-style:italic;
+    margin:0 auto 18px auto;
+    max-width:680px;
+    line-height:1.45;
+}
+
+.mastery-summary-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(145px, 1fr));
+    gap:10px;
+    margin:18px 0;
+}
+
+.mastery-stat-card,
+.mastery-section{
+    background:
+        radial-gradient(circle at top,
+            rgba(65,95,78,0.26),
+            rgba(42,55,49,0.84) 45%,
+            rgba(4,5,5,0.96));
+    border:1px solid rgba(214,177,92,0.30);
+    border-radius:12px;
+    box-shadow:
+        0 0 18px rgba(0,0,0,0.62),
+        inset 0 0 20px rgba(0,0,0,0.52);
+}
+
+.mastery-stat-card{
+    padding:12px;
+    text-align:center;
+}
+
+.mastery-stat-label{
+    display:block;
+    color:#d8c7a0;
+    font-size:11px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    margin-bottom:6px;
+}
+
+.mastery-stat-value{
+    display:block;
+    color:#f4d58d;
+    font-size:24px;
+    font-weight:900;
+    text-shadow:0 0 10px rgba(240,199,94,0.40);
+}
+
+.mastery-section{
+    padding:16px;
+    margin:14px 0;
+}
+
+.mastery-section h3{
+    margin:0 0 12px 0;
+    color:#f4d58d;
+    letter-spacing:1px;
+    text-shadow:0 0 10px rgba(214,177,92,0.38);
+}
+
+.mastery-verdict{
+    border-left:3px solid #f4d58d;
+    padding:14px 16px;
+    margin:14px 0;
+    background:rgba(4,5,5,0.54);
+    border-radius:10px;
+    color:#f3ead2;
+    line-height:1.5;
+}
+
+.mastery-row{
+    padding:10px 0;
+    border-top:1px solid rgba(216,199,160,0.16);
+}
+
+.mastery-row:first-child{
+    border-top:none;
+}
+
+.mastery-row-main{
+    display:flex;
+    justify-content:space-between;
+    gap:14px;
+    align-items:flex-start;
+}
+
+.mastery-row-name{
+    color:#f3ead2;
+    font-weight:700;
+    line-height:1.25;
+}
+
+.mastery-row-score{
+    color:#f4d58d;
+    white-space:nowrap;
+    font-weight:800;
+}
+
+.mastery-row-meta{
+    display:block;
+    margin-top:5px;
+    color:rgba(216,199,160,0.72);
+    font-size:12px;
+    line-height:1.35;
+}
+
+.mastery-bar{
+    height:8px;
+    margin-top:8px;
+    border-radius:999px;
+    background:rgba(4,5,5,0.82);
+    overflow:hidden;
+    border:1px solid rgba(56,189,248,0.18);
+}
+
+.mastery-bar-fill{
+    height:100%;
+    width:0%;
+    border-radius:999px;
+    background:linear-gradient(90deg, #b91c1c, #d6b15c, #f4d58d);
+    box-shadow:0 0 10px rgba(214,177,92,0.38);
+}
+
+.mastery-empty{
+    color:rgba(216,199,160,0.78);
+    font-style:italic;
+    margin:0;
+}
+
+.mastery-actions{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:20px;
+}
+
+.mastery-actions button{
+    min-width:150px;
+}
+
+@media(max-width:768px){
+    .mastery-report-screen{ padding:14px; }
+    .mastery-report-title{ font-size:24px; }
+    .mastery-row-main{ flex-direction:column; gap:4px; }
+    .mastery-row-score{ white-space:normal; }
+}
+
 </style>
 </head>
 
@@ -4738,6 +4914,7 @@ function endTimedModeRun(){
     `;
 
     document.getElementById("answers").innerHTML = `
+        <button class="continue-btn" onclick="showMasteryReportScreen()">View Mastery Report</button>
         <button class="continue-btn" onclick="restartTimedMode()">Retry Timed Trial</button>
         <button class="continue-btn" onclick="returnToModeSelectFromRun()">Choose Another Ledger Run</button>
     `;
@@ -4939,7 +5116,7 @@ legendary: [
 { id:9021, difficulty:"legendary", conceptCluster:"gdp_components", primarySkill:"gdp_components_identity", secondarySkills:["imports_exports_nx", "inventory_investment"], repairSkill:"gdp_components_identity", commonError:"Mixing up the GDP expenditure components or forgetting the C + I + G + NX identity.", q:"A firm buys a new domestically produced machine for $1M and a share of stock in another company for $1M. What is the direct effect on GDP?", options:["GDP rises by $1M because the machine is new capital; the stock purchase is a financial transaction","GDP rises by $2M because both are investments","GDP does not change because firms made both purchases","GDP rises only from the stock purchase"], a:0, tag:"gdp_components", type:"trap", objective:"LO24.3", feedback:"Economic investment in GDP means new capital goods, not financial asset purchases." },
 { id:9022, difficulty:"legendary", conceptCluster:"real_nominal_gdp", primarySkill:"gdp_deflator", secondarySkills:["nominal_vs_real_gdp"], repairSkill:"gdp_deflator", commonError:"Forgetting that the GDP deflator compares nominal GDP to real GDP.", q:"If an economy's nominal GDP doubles while real GDP rises by only 20%, what must be true?", options:["Much of the nominal increase came from higher prices","Output must have doubled","The GDP deflator must have fallen","Imports must have equaled exports"], a:0, tag:"real_nominal_gdp", type:"interpretation", objective:"LO24.4", feedback:"Nominal GDP reflects prices and quantities; real GDP shows output grew much less than nominal GDP." },
 
-{ id:9023, difficulty:"legendary", conceptCluster:"prices_inflation", primarySkill:"cpi_calculation", secondarySkills:["inflation_rate"], repairSkill:"cpi_calculation", commonError:"Using the wrong basket cost or forgetting to multiply by 100.", q:"A CPI basket has 6 gallons of gas and 4 meals. Base prices are $3 per gallon and $12 per meal. Current prices are $4.50 per gallon and $15 per meal. What is the current CPI?", options:["131.82","137.50","151.20","127.27"], a:0, tag:"cpi_inflation", type:"calculation", objective:"LO25.1", feedback:"Base cost = 6(3)+4(12)=66. Current cost = 6(4.5)+4(15)=87. CPI = 100 x 87/66 = 131.82. Wait, none say 131.82; the question is a trap because no listed option is correct." },
+{ id:9023, difficulty:"legendary", conceptCluster:"prices_inflation", primarySkill:"cpi_calculation", secondarySkills:["inflation_rate"], repairSkill:"cpi_calculation", commonError:"Using the wrong basket cost or forgetting to multiply by 100.", q:"A CPI basket has 6 gallons of gas and 4 meals. Base prices are $3 per gallon and $12 per meal. Current prices are $4.50 per gallon and $15 per meal. What is the current CPI?", options:["131.82","137.50","151.20","127.27"], a:0, tag:"cpi_inflation", type:"calculation", objective:"LO25.1", feedback:"Base cost = 6(3)+4(12)=66. Current cost = 6(4.5)+4(15)=87. CPI = 100 x 87/66 = 131.82." },
 { id:9024, difficulty:"legendary", conceptCluster:"prices_inflation", primarySkill:"inflation_rate", secondarySkills:["cpi_calculation"], repairSkill:"inflation_rate", commonError:"Using the CPI point change instead of the percentage change.", q:"A CPI basket costs $800 in the base year, $1,000 last year, and $1,080 this year. What is this year's inflation rate?", options:["8%","35%","25%","10%"], a:0, tag:"cpi_inflation", type:"calculation", objective:"LO25.1", feedback:"Last year's CPI = 125 and this year's CPI = 135. Inflation = (135 - 125)/125 = 8%." },
 { id:9025, difficulty:"legendary", conceptCluster:"prices_inflation", primarySkill:"cpi_calculation", secondarySkills:["inflation_rate"], repairSkill:"cpi_calculation", commonError:"Using the wrong basket cost or forgetting to multiply by 100.", q:"A basket has 10 units of A and 5 units of B. Base prices are A = $4 and B = $8. Current prices are A = $6 and B = $10. What is the CPI?", options:["137.5","150","125","160"], a:0, tag:"cpi_inflation", type:"calculation", objective:"LO25.1", feedback:"Base cost = 10(4)+5(8)=80. Current cost = 10(6)+5(10)=110. CPI = 137.5." },
 { id:9026, difficulty:"legendary", conceptCluster:"prices_inflation", primarySkill:"inflation_rate", secondarySkills:["cpi_calculation"], repairSkill:"inflation_rate", commonError:"Using the CPI point change instead of the percentage change.", q:"If CPI rises from 160 to 176 and nominal wages rise from $20 to $21, what happens to the real wage?", options:["It falls because prices rose 10% while nominal wages rose 5%","It rises because nominal wages rose","It stays unchanged because both CPI and wages rose","It doubles because CPI is above 100"], a:0, tag:"cpi_inflation", type:"multi-step", objective:"LO25.1", feedback:"Inflation is 10%; nominal wages rose 5%, so the real wage falls." },
@@ -4987,7 +5164,7 @@ legendary: [
 
 { id:9067, difficulty:"legendary", conceptCluster:"labor_market", primarySkill:"unemployment_rate", secondarySkills:["labor_force_calculation", "labor_force_participation"], repairSkill:"unemployment_rate", commonError:"Dividing unemployed workers by the whole population instead of the labor force.", q:"An economy has 170M employed, 10M unemployed, and 70M not in the labor force. Then 5M unemployed become discouraged and 5M not in the labor force find jobs. What is the new unemployment rate?", options:["2.78%","5.56%","5.26%","8.33%"], a:0, tag:"labor_force_stats", type:"multi-step", objective:"LO29.1", feedback:"New employed = 175M, unemployed = 5M, labor force = 180M. Unemployment = 5/180 = 2.78%." },
 { id:9068, difficulty:"legendary", conceptCluster:"labor_market", primarySkill:"labor_force_participation", secondarySkills:["labor_force_calculation"], repairSkill:"labor_force_participation", commonError:"Using unemployed workers instead of the labor force in the participation formula.", q:"Adult population is 280M, labor force participation is 65%, and unemployment rate is 6%. How many people are employed?", options:["171.08M","182M","16.8M","263.2M"], a:0, tag:"labor_force_stats", type:"calculation", objective:"LO29.1", feedback:"Labor force = 0.65 x 280 = 182M. Unemployed = 0.06 x 182 = 10.92M. Employed = 171.08M." },
-{ id:9069, difficulty:"legendary", conceptCluster:"labor_market", primarySkill:"unemployment_rate", secondarySkills:["labor_force_calculation", "labor_force_participation"], repairSkill:"unemployment_rate", commonError:"Dividing unemployed workers by the whole population instead of the labor force.", q:"An economy has 90 employed, 10 unemployed, and 50 not in the labor force. Five employed workers lose jobs and search; five unemployed workers stop searching. What happens to unemployment rate?", options:["It rises slightly to 10.5%","It rises to 15%","It falls to 5%","It becomes 0%"], a:0, tag:"labor_force_stats", type:"multi-step", objective:"LO29.1", feedback:"Employed falls to 85; unemployed remains 10; labor force remains 95? Wait: original LF 100; five employed become unemployed, five unemployed leave LF, so LF = 95 and unemployed = 10. Rate = 10/95 = 10.53%, so no listed answer is exact." },
+{ id:9069, difficulty:"legendary", conceptCluster:"labor_market", primarySkill:"unemployment_rate", secondarySkills:["labor_force_calculation", "labor_force_participation"], repairSkill:"unemployment_rate", commonError:"Dividing unemployed workers by the whole population instead of the labor force.", q:"An economy has 90 employed, 10 unemployed, and 50 not in the labor force. Five employed workers lose jobs and search; five unemployed workers stop searching. What happens to unemployment rate?", options:["It rises slightly to 10.5%","It rises to 15%","It falls to 5%","It becomes 0%"], a:0, tag:"labor_force_stats", type:"multi-step", objective:"LO29.1", feedback:"Employed falls to 85; unemployed remains 10; labor force remains 95? Wait: original LF 100; five employed become unemployed, five unemployed leave LF, so LF = 95 and unemployed = 10. Rate = 10/95 = 10.53%." },
 { id:9070, difficulty:"legendary", conceptCluster:"labor_market", primarySkill:"labor_force_participation", secondarySkills:["labor_force_calculation"], repairSkill:"labor_force_participation", commonError:"Using unemployed workers instead of the labor force in the participation formula.", q:"The unemployment rate falls while labor force participation also falls. Which interpretation is most careful?", options:["Some improvement may be real, but worker exit from the labor force may also be lowering measured unemployment","The labor market definitely improved","Employment must have risen","Cyclical unemployment must be zero"], a:0, tag:"labor_force_stats", type:"interpretation", objective:"LO29.1", feedback:"A falling unemployment rate can be misleading when participation falls." },
 { id:9071, difficulty:"legendary", conceptCluster:"labor_market", primarySkill:"employment_classification", secondarySkills:["discouraged_workers"], repairSkill:"employment_classification", commonError:"Classifying people by desire for work instead of paid work and active search status.", q:"A jobless worker applied to three jobs last week. Another jobless worker wants work but last searched two months ago. A third works 3 hours per week but wants full-time work. How are they classified?", options:["Unemployed; not in labor force; employed","Unemployed; unemployed; unemployed","Employed; unemployed; not in labor force","Not in labor force; unemployed; employed"], a:0, tag:"employment_categories", type:"multi-step", objective:"LO29.2", feedback:"Recent active search means unemployed; no recent search means not in labor force; any paid work means employed." },
 { id:9072, difficulty:"legendary", conceptCluster:"labor_market", primarySkill:"employment_classification", secondarySkills:["discouraged_workers"], repairSkill:"employment_classification", commonError:"Classifying people by desire for work instead of paid work and active search status.", q:"Which case makes the headline unemployment rate look better than the actual labor market experience?", options:["A rise in discouraged workers and involuntary part-time workers","A rise in full-time employment","More unemployed workers actively searching","More job openings filled"], a:0, tag:"employment_categories", type:"interpretation", objective:"LO29.2", feedback:"Discouraged and involuntary part-time workers are not fully captured by the headline unemployment rate." },
@@ -5173,7 +5350,7 @@ finalBoss: [
 // Set 1: Labor force classification and unemployment rate traps
 { id:4000, difficulty:"finalBoss", conceptCluster:"labor_market", primarySkill:"employment_classification", secondarySkills:["discouraged_workers"], repairSkill:"employment_classification", commonError:"Classifying people by desire for work instead of paid work and active search status.", q:"The Comptroller asks: an adult has no job, wants work, and applied for jobs last week. How is this person classified?", options:["Unemployed","Employed","Not in the labor force","Discouraged worker only"], a:0, tag:"employment_categories", type:"definition", objective:"LO29.2", boss:"FinalBoss", feedback:"A jobless person who is actively searching is counted as unemployed." },
 { id:4001, difficulty:"finalBoss", conceptCluster:"labor_market", primarySkill:"discouraged_workers", secondarySkills:["employment_classification"], repairSkill:"discouraged_workers", commonError:"Counting discouraged workers as unemployed even after they stop actively searching.", q:"A jobless worker wants work but stopped searching because they think no jobs are available. What happens to official unemployment statistics?", options:["The worker is not counted as unemployed because active search stopped","The worker is counted as employed","The worker raises employment and unemployment","The worker is counted as unemployed forever"], a:0, tag:"employment_categories", type:"interpretation", objective:"LO29.2", boss:"FinalBoss", feedback:"Discouraged workers are not counted as unemployed once they stop actively searching." },
-{ id:4002, difficulty:"finalBoss", conceptCluster:"labor_market", primarySkill:"unemployment_rate", secondarySkills:["labor_force_calculation", "labor_force_participation"], repairSkill:"unemployment_rate", commonError:"Dividing unemployed workers by the whole population instead of the labor force.", q:"An economy has 100 employed, 10 unemployed, and 40 not in the labor force. If 5 unemployed workers become discouraged, what is the new unemployment rate?", options:["5.3%","10%","6.7%","3.3%"], a:0, tag:"labor_force_stats", type:"calculation", objective:"LO29.1", boss:"FinalBoss", feedback:"Unemployed falls to 5 and labor force falls to 105, so unemployment is 5/105 = 4.76%. None are exact; closest is 5.3%, but this reveals why precise calculation matters." },
+{ id:4002, difficulty:"finalBoss", conceptCluster:"labor_market", primarySkill:"unemployment_rate", secondarySkills:["labor_force_calculation", "labor_force_participation"], repairSkill:"unemployment_rate", commonError:"Dividing unemployed workers by the whole population instead of the labor force.", q:"An economy has 100 employed, 10 unemployed, and 40 not in the labor force. If 5 unemployed workers become discouraged, what is the new unemployment rate?", options:["4.8%","10%","6.7%","3.3%"], a:0, tag:"labor_force_stats", type:"calculation", objective:"LO29.1", boss:"FinalBoss", feedback:"Unemployed falls to 5 and labor force falls to 105, so unemployment is 5/105 = 4.76%." },
 
 // Set 2: Labor force participation and hidden weakness
 { id:4003, difficulty:"finalBoss", conceptCluster:"labor_market", primarySkill:"labor_force_participation", secondarySkills:["labor_force_calculation"], repairSkill:"labor_force_participation", commonError:"Using unemployed workers instead of the labor force in the participation formula.", q:"The Comptroller queries the participation rolls: labor force participation is calculated as:", options:["Labor force divided by adult population times 100","Unemployed divided by labor force times 100","Employed divided by unemployed times 100","Not in labor force divided by unemployed times 100"], a:0, tag:"labor_force_stats", type:"definition", objective:"LO29.1", boss:"FinalBoss", feedback:"Labor force participation measures the share of adults in the labor force." },
@@ -7412,6 +7589,7 @@ function handleLegendaryVictory(){
     `;
 
     document.getElementById("answers").innerHTML = `
+        <button class="continue-btn" onclick="showMasteryReportScreen()">View Mastery Report</button>
         <button class="continue-btn" onclick="returnToModeSelectFromRun()">Choose Another Ledger Run</button>
     `;
 
@@ -7489,6 +7667,7 @@ function handleScoreAttackVictory(){
     `;
 
     document.getElementById("answers").innerHTML = `
+        <button class="continue-btn" onclick="showMasteryReportScreen()">View Mastery Report</button>
         <button class="continue-btn" onclick="restartScoreAttackMode()">Retry Score Attack</button>
         <button class="continue-btn" onclick="returnToModeSelectFromRun()">Choose Another Ledger Run</button>
     `;
@@ -7551,6 +7730,7 @@ function handlePracticeModeComplete(){
     `;
 
     document.getElementById("answers").innerHTML = `
+        <button class="continue-btn" onclick="showMasteryReportScreen()">View Mastery Report</button>
         <button class="continue-btn" onclick="returnToModeSelectFromRun()">Choose Another Ledger Run</button>
     `;
 
@@ -7759,6 +7939,9 @@ function handleVictory() {
                 <button id="shareBtn" onclick="copyResults()" style="background:#4ade80; color:black; font-weight:bold; padding:12px 24px; border:none; border-radius:6px; cursor:pointer;">
                     Copy Results
                 </button>
+                <button onclick="showMasteryReportScreen()" style="background:linear-gradient(180deg,#8a4f25,#3a1f14); color:#f3ead2; font-weight:bold; padding:12px 24px; border:1px solid rgba(240,199,94,0.52); border-radius:6px; cursor:pointer;">
+                    View Mastery Report
+                </button>
                 <button onclick="location.reload()" style="background:transparent; color:white; border:1px solid white; padding:12px 24px; border-radius:6px; cursor:pointer;">
                     Run Ledger Again
                 </button>
@@ -7774,6 +7957,519 @@ function handleVictory() {
             line.style.opacity = 1;
         }
     }, 600);
+}
+
+// =============================================
+// POST-BATTLE MASTERY REPORT
+// Student-facing diagnostic built from masteryState.
+// Uses existing tag, objective, skill, type, accuracy, and response-time data.
+// No answer keys. No question IDs. No nonsense.
+// =============================================
+let latestResultsScreenHTML = "";
+
+const NATIONAL_LEDGER_OBJECTIVE_LABELS = {
+    "LO24.1": "LO 24.1 — GDP as income and expenditure",
+    "LO24.2": "LO 24.2 — GDP definition and production boundaries",
+    "LO24.3": "LO 24.3 — GDP expenditure components",
+    "LO24.4": "LO 24.4 — Nominal GDP, real GDP, and the GDP deflator",
+    "LO24.5": "LO 24.5 — GDP and economic well-being",
+    "LO25.1": "LO 25.1 — CPI and inflation calculation",
+    "LO25.2": "LO 25.2 — CPI bias and measurement problems",
+    "LO25.3": "LO 25.3 — CPI versus GDP deflator",
+    "LO25.4": "LO 25.4 — Inflation adjustment and real values",
+    "LO25.5": "LO 25.5 — Nominal and real interest rates",
+    "LO26.1": "LO 26.1 — Growth differences and compounding",
+    "LO26.2": "LO 26.2 — Productivity measurement",
+    "LO26.3": "LO 26.3 — Determinants of productivity",
+    "LO26.4": "LO 26.4 — Growth policy and institutions",
+    "LO29.1": "LO 29.1 — Labor-force statistics",
+    "LO29.2": "LO 29.2 — Employment and unemployment categories",
+    "LO29.3": "LO 29.3 — Types of unemployment",
+    "LO29.4": "LO 29.4 — Labor-market policy and job search",
+    "LO29.5": "LO 29.5 — Natural unemployment",
+    "LO29.1_LO29.2_LO29.5": "LO 29 Synthesis — Labor-market measurement and natural unemployment",
+    "integrated_macro_review": "Integrated Macro Review",
+    "system_check": "System Check"
+};
+
+function escapeHTML(value){
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function titleCase(value){
+    return String(value || "")
+        .replace(/_/g, " ")
+        .replace(/-/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .replace(/\b\w/g, letter => letter.toUpperCase());
+}
+
+function formatMasteryLabel(key){
+    if(!key) return "Unlabeled Concept";
+
+    const text = String(key);
+    const objectiveMatch = text.match(/^(LO\d+\.\d+)/);
+
+    if(objectiveMatch && NATIONAL_LEDGER_OBJECTIVE_LABELS[objectiveMatch[1]]){
+        const suffix = text
+            .replace(objectiveMatch[1], "")
+            .replace(/^_+/, "")
+            .replace(/_/g, " ")
+            .trim();
+
+        return suffix
+            ? `${NATIONAL_LEDGER_OBJECTIVE_LABELS[objectiveMatch[1]]}: ${titleCase(suffix)}`
+            : NATIONAL_LEDGER_OBJECTIVE_LABELS[objectiveMatch[1]];
+    }
+
+    return titleCase(text);
+}
+
+function formatPercent(value){
+    if(value === null || value === undefined || !Number.isFinite(Number(value))) return "—";
+    return `${Math.round(Number(value) * 100)}%`;
+}
+
+function formatSeconds(ms){
+    const numeric = Number(ms || 0);
+    if(!Number.isFinite(numeric) || numeric <= 0) return "—";
+    return `${Math.round(numeric / 1000)}s`;
+}
+
+function getBucketEntry(key, bucket, category = "concept"){
+    if(!bucket || !bucket.attempts){
+        return null;
+    }
+
+    const attempts = Number(bucket.attempts || 0);
+    const correct = Number(bucket.correct || 0);
+    const accuracy = attempts ? correct / attempts : null;
+    const typeForTiming = category === "type" ? key : "default";
+    const target = getTypeTargetMs(typeForTiming);
+    const avgTime = Number(bucket.avgTime || 0);
+    const timeRatio = avgTime && target ? avgTime / target : 1;
+    const fluency = accuracy === null
+        ? 0
+        : accuracy - clamp((timeRatio - 1) * 0.25, 0, 0.35);
+
+    return {
+        key,
+        label: formatMasteryLabel(key),
+        category,
+        attempts,
+        correct,
+        accuracy,
+        avgTime,
+        timeRatio,
+        fluency
+    };
+}
+
+function getEntriesFromBuckets(source, category = "concept"){
+    return Object.entries(source || {})
+        .map(([key, bucket]) => getBucketEntry(key, bucket, category))
+        .filter(Boolean);
+}
+
+function getTypeMasteryEntries(){
+    const typeBuckets = {};
+
+    Object.values(masteryState.byTag || {}).forEach(tagBucket => {
+        Object.entries(tagBucket.byType || {}).forEach(([type, bucket]) => {
+            if(!typeBuckets[type]){
+                typeBuckets[type] = { attempts: 0, correct: 0, avgTime: 0 };
+            }
+
+            const oldAttempts = typeBuckets[type].attempts;
+            const newAttempts = oldAttempts + Number(bucket.attempts || 0);
+
+            typeBuckets[type].correct += Number(bucket.correct || 0);
+            typeBuckets[type].avgTime = newAttempts
+                ? ((typeBuckets[type].avgTime * oldAttempts) + (Number(bucket.avgTime || 0) * Number(bucket.attempts || 0))) / newAttempts
+                : 0;
+            typeBuckets[type].attempts = newAttempts;
+        });
+    });
+
+    return getEntriesFromBuckets(typeBuckets, "type");
+}
+
+function sortStrongest(entries){
+    return [...entries]
+        .filter(entry => entry.attempts >= 2)
+        .sort((a,b) => (b.accuracy - a.accuracy) || (b.fluency - a.fluency) || (b.attempts - a.attempts));
+}
+
+function sortWeakest(entries){
+    const enoughData = entries.filter(entry => entry.attempts >= 2);
+    const pool = enoughData.length ? enoughData : entries;
+
+    return [...pool]
+        .sort((a,b) => (a.accuracy - b.accuracy) || (a.fluency - b.fluency) || (b.avgTime - a.avgTime));
+}
+
+function hasMeaningfulWeakness(entries, accuracyThreshold = 0.85){
+    return (entries || []).some(entry => {
+        if(!entry || entry.attempts < 2) return false;
+
+        const accuracy = entry.accuracy === null || entry.accuracy === undefined
+            ? 1
+            : Number(entry.accuracy);
+
+        return accuracy < accuracyThreshold || entry.timeRatio > 1.35;
+    });
+}
+
+function renderMasteryRows(entries, emptyText){
+    if(!entries || entries.length === 0){
+        return `<p class="mastery-empty">${escapeHTML(emptyText)}</p>`;
+    }
+
+    return entries.map(entry => {
+        const pct = Math.max(0, Math.min(100, Math.round((entry.accuracy || 0) * 100)));
+        const pace = entry.timeRatio > 1.25
+            ? "Slow response pattern"
+            : entry.timeRatio < 0.65
+                ? "Fast response pattern"
+                : "Stable pace";
+
+        return `
+            <div class="mastery-row">
+                <div class="mastery-row-main">
+                    <span class="mastery-row-name">${escapeHTML(entry.label)}</span>
+                    <span class="mastery-row-score">${formatPercent(entry.accuracy)} · ${entry.correct}/${entry.attempts}</span>
+                </div>
+                <span class="mastery-row-meta">Average response: ${formatSeconds(entry.avgTime)} · ${pace}</span>
+                <div class="mastery-bar"><div class="mastery-bar-fill" style="width:${pct}%"></div></div>
+            </div>
+        `;
+    }).join("");
+}
+
+function renderMasteryDiagnosticSection({
+    weaknessTitle,
+    signalTitle,
+    entries,
+    hasWeakness,
+    weaknessEmptyText,
+    cleanText
+}){
+    const title = hasWeakness ? weaknessTitle : signalTitle;
+    const body = hasWeakness
+        ? renderMasteryRows(entries, weaknessEmptyText)
+        : `<p class="mastery-empty">${escapeHTML(cleanText)}</p>`;
+
+    return `
+        <div class="mastery-section">
+            <h3>${escapeHTML(title)}</h3>
+            ${body}
+        </div>
+    `;
+}
+
+function getRecentBehaviorSignals(){
+    const recent = masteryState.recent || [];
+    let fastMisses = 0;
+    let slowCorrects = 0;
+    let recentCorrect = 0;
+    let recentTimeTotal = 0;
+
+    recent.forEach(item => {
+        const target = getTypeTargetMs(item.type || "default");
+        const responseTime = Number(item.responseTime || 0);
+
+        if(item.correct) recentCorrect++;
+        if(responseTime) recentTimeTotal += responseTime;
+
+        if(!item.correct && responseTime > 0 && responseTime < target * 0.55){
+            fastMisses++;
+        }
+
+        if(item.correct && responseTime > target * 1.20){
+            slowCorrects++;
+        }
+    });
+
+    return {
+        count: recent.length,
+        accuracy: recent.length ? recentCorrect / recent.length : null,
+        avgTime: recent.length ? recentTimeTotal / recent.length : 0,
+        fastMisses,
+        slowCorrects
+    };
+}
+
+
+function getMasteryReportModeName(){
+    if(gameMode === "timed" || gameMode === "timed-complete") return "Timed Trial";
+    if(gameMode === "score") return "Score Attack";
+    if(gameMode === "legendary") return "Legendary Mode";
+    if(gameMode === "exam") return "Exam Drill";
+    return getModeDisplayName();
+}
+
+function getMasteryReportData(){
+    const totalTimeMs = startTime ? (Date.now() - startTime) : 0;
+    const accuracy = totalAttempts > 0 ? correctAnswers / totalAttempts : 0;
+    const tagEntries = getEntriesFromBuckets(masteryState.byTag || {}, "tag");
+    const objectiveEntries = getEntriesFromBuckets(masteryState.byObjective || {}, "objective");
+    const skillEntries = getEntriesFromBuckets(masteryState.bySkill || {}, "skill");
+    const typeEntries = getTypeMasteryEntries();
+    const behavior = getRecentBehaviorSignals();
+
+    const strongest = sortStrongest([...objectiveEntries, ...tagEntries]).slice(0, 4);
+    const weakestObjectives = sortWeakest(objectiveEntries).slice(0, 4);
+    const weakestTypes = sortWeakest(typeEntries).slice(0, 3);
+    const weakestSkills = sortWeakest(skillEntries).slice(0, 3);
+
+    const hasObjectiveWeakness = hasMeaningfulWeakness(objectiveEntries, 0.85);
+    const hasTypeWeakness = hasMeaningfulWeakness(typeEntries, 0.85);
+    const hasSkillWeakness = hasMeaningfulWeakness(skillEntries, 0.85);
+    const hasBehaviorWeakness = behavior.fastMisses >= 2 || behavior.slowCorrects >= 3;
+    const noMajorWeakness = totalAttempts >= 8
+        && accuracy >= 0.85
+        && !hasObjectiveWeakness
+        && !hasTypeWeakness
+        && !hasSkillWeakness
+        && !hasBehaviorWeakness;
+
+    let verdict = "The Custodian found enough signal to build a report. Use it. Ignoring it would be malpractice with extra steps.";
+
+    if(totalAttempts < 5){
+        verdict = "The report is limited because this run has very few attempts. The Ledger needs more evidence before it can judge mastery with confidence.";
+    } else if(noMajorWeakness){
+        verdict = "No major weakness detected. That does not mean the Ledger is done with you. It means the next useful signal comes from harder pressure: Legendary Mode first, Score Attack after that.";
+    } else if(accuracy >= 0.90){
+        verdict = "Strong command. You cleared the Ledger with high accuracy. The weak signals below show where the next pressure test should focus.";
+    } else if(accuracy >= 0.75){
+        verdict = "Battle-ready, but not bulletproof. The weak areas below are where points will leak on an exam.";
+    } else {
+        verdict = "Unstable command. You finished, but the Ledger exposed weak signals. Hit the listed areas before chasing speed or Legendary Mode.";
+    }
+
+    const nextSteps = [];
+
+    if(noMajorWeakness){
+        nextSteps.push("Enter Legendary Mode next. The current Ledger run did not expose a major weak point, so harder multi-step and trap-heavy questions are the right next test.");
+        nextSteps.push("Use Score Attack after Legendary Mode feels stable. Speed pressure is useful only after mastery survives harder questions.");
+    } else {
+        if(hasObjectiveWeakness && weakestObjectives[0]){
+            nextSteps.push(`Review ${weakestObjectives[0].label}. That objective showed the weakest mastery signal.`);
+        }
+
+        if(hasTypeWeakness && weakestTypes[0]){
+            nextSteps.push(`Practice ${weakestTypes[0].label} questions. That question form caused the most trouble.`);
+        }
+
+        if(hasSkillWeakness && weakestSkills[0]){
+            nextSteps.push(`Drill ${weakestSkills[0].label}. That skill needs cleaner repetition.`);
+        }
+
+        if(behavior.fastMisses >= 2){
+            nextSteps.push("Slow down on traps and graph-style items. Fast misses are not fluency. They are just wrong answers with confidence.");
+        } else if(behavior.slowCorrects >= 3){
+            nextSteps.push("You can get answers right, but some correct responses were slow. Build speed only after the reasoning is automatic.");
+        }
+    }
+
+    if(nextSteps.length === 0){
+        nextSteps.push("Run a harder mode next. The current evidence does not show a major weak point. Make the Ledger earn its paycheck.");
+    }
+
+    return {
+        mode: getMasteryReportModeName(),
+        accuracy,
+        totalTimeMs,
+        timeString: formatTime(totalTimeMs),
+        totalAttempts,
+        correctAnswers,
+        maxStreak,
+        score: modeUsesScoreAttack() ? scoreAttackScore : null,
+        strongest,
+        weakestObjectives,
+        weakestTypes,
+        weakestSkills,
+        hasObjectiveWeakness,
+        hasTypeWeakness,
+        hasSkillWeakness,
+        noMajorWeakness,
+        behavior,
+        verdict,
+        nextSteps
+    };
+}
+
+function showMasteryReportScreen(){
+    const gameBox = document.getElementById("gameBox");
+    if(!gameBox) return;
+
+    if(!document.getElementById("masteryReportScreen")){
+        latestResultsScreenHTML = gameBox.innerHTML;
+    }
+
+    const report = getMasteryReportData();
+    const scoreCard = report.score !== null
+        ? `<div class="mastery-stat-card"><span class="mastery-stat-label">Score</span><span class="mastery-stat-value">${report.score}</span></div>`
+        : "";
+
+    gameBox.innerHTML = `
+        <div id="masteryReportScreen" class="mastery-report-screen">
+            <h1 class="mastery-report-title">THE CUSTODIAN'S REPORT</h1>
+            <p class="mastery-report-subtitle">Post-battle mastery readout for The National Ledger. This is the signal behind the score.</p>
+
+            <div class="mastery-summary-grid">
+                <div class="mastery-stat-card"><span class="mastery-stat-label">Mode</span><span class="mastery-stat-value">${escapeHTML(report.mode)}</span></div>
+                <div class="mastery-stat-card"><span class="mastery-stat-label">Accuracy</span><span class="mastery-stat-value">${formatPercent(report.accuracy)}</span></div>
+                <div class="mastery-stat-card"><span class="mastery-stat-label">Correct</span><span class="mastery-stat-value">${report.correctAnswers}/${report.totalAttempts}</span></div>
+                <div class="mastery-stat-card"><span class="mastery-stat-label">Best Streak</span><span class="mastery-stat-value">${report.maxStreak}</span></div>
+                <div class="mastery-stat-card"><span class="mastery-stat-label">Time</span><span class="mastery-stat-value">${escapeHTML(report.timeString)}</span></div>
+                ${scoreCard}
+            </div>
+
+            <div class="mastery-verdict">${escapeHTML(report.verdict)}</div>
+
+            <div class="mastery-section">
+                <h3>Strongest Signals</h3>
+                ${renderMasteryRows(report.strongest, "No clear strength signal yet. The run did not create enough repeated evidence.")}
+            </div>
+
+            ${renderMasteryDiagnosticSection({
+                weaknessTitle: "Weakest Learning Objectives",
+                signalTitle: "Objective Signals",
+                entries: report.weakestObjectives,
+                hasWeakness: report.hasObjectiveWeakness,
+                weaknessEmptyText: "No objective weakness was detected. Either the run was clean, or there was not enough data.",
+                cleanText: "No major objective weakness detected. Push into Legendary Mode to see whether the signal holds under harder multi-step pressure."
+            })}
+
+            ${renderMasteryDiagnosticSection({
+                weaknessTitle: "Weakest Question Forms",
+                signalTitle: "Question Form Signals",
+                entries: report.weakestTypes,
+                hasWeakness: report.hasTypeWeakness,
+                weaknessEmptyText: "No question-type weakness was detected.",
+                cleanText: "No major question-form weakness detected. The next useful test is harder prompts, closer traps, and less obvious wording."
+            })}
+
+            ${renderMasteryDiagnosticSection({
+                weaknessTitle: "Weakest Skills",
+                signalTitle: "Skill Signals",
+                entries: report.weakestSkills,
+                hasWeakness: report.hasSkillWeakness,
+                weaknessEmptyText: "No skill weakness was detected.",
+                cleanText: "No major skill weakness detected. That is your cue to stop farming safe questions and enter Legendary Mode."
+            })}
+
+            <div class="mastery-section">
+                <h3>Behavior Signals</h3>
+                <div class="mastery-row">
+                    <div class="mastery-row-main">
+                        <span class="mastery-row-name">Recent Accuracy</span>
+                        <span class="mastery-row-score">${formatPercent(report.behavior.accuracy)}</span>
+                    </div>
+                    <span class="mastery-row-meta">Based on the last ${report.behavior.count} tracked attempts.</span>
+                </div>
+                <div class="mastery-row">
+                    <div class="mastery-row-main">
+                        <span class="mastery-row-name">Fast Misses</span>
+                        <span class="mastery-row-score">${report.behavior.fastMisses}</span>
+                    </div>
+                    <span class="mastery-row-meta">Fast wrong answers suggest careless reading or trap selection.</span>
+                </div>
+                <div class="mastery-row">
+                    <div class="mastery-row-main">
+                        <span class="mastery-row-name">Slow Corrects</span>
+                        <span class="mastery-row-score">${report.behavior.slowCorrects}</span>
+                    </div>
+                    <span class="mastery-row-meta">Slow correct answers suggest understanding is present but not automatic yet.</span>
+                </div>
+            </div>
+
+            <div class="mastery-section">
+                <h3>Next Moves</h3>
+                ${report.nextSteps.map(step => `<div class="mastery-row"><span class="mastery-row-name">${escapeHTML(step)}</span></div>`).join("")}
+            </div>
+
+            <div class="mastery-actions">
+                <button class="continue-btn" onclick="copyMasteryReport()">Copy Report</button>
+                ${report.noMajorWeakness && gameMode !== "legendary" ? `<button class="continue-btn" onclick="startSelectedMode('legendary')">Enter Legendary Mode</button>` : ""}
+                <button class="continue-btn secondary-modal-btn" onclick="restoreResultsScreen()">Back to Results</button>
+                <button class="continue-btn secondary-modal-btn" onclick="returnToModeSelectFromRun()">Choose Another Ledger Run</button>
+            </div>
+        </div>
+    `;
+}
+
+function restoreResultsScreen(){
+    const gameBox = document.getElementById("gameBox");
+    if(!gameBox || !latestResultsScreenHTML) return;
+
+    gameBox.innerHTML = latestResultsScreenHTML;
+
+    const line = document.getElementById("archivistLine");
+    if(line){
+        line.style.opacity = 1;
+    }
+}
+
+function copyMasteryReport(){
+    const report = getMasteryReportData();
+
+    const lines = [
+        "The National Ledger — Custodian's Mastery Report",
+        `Student: ${username}`,
+        `Mode: ${report.mode}`,
+        `Accuracy: ${formatPercent(report.accuracy)} (${report.correctAnswers}/${report.totalAttempts})`,
+        `Best Streak: ${report.maxStreak}`,
+        `Time: ${report.timeString}`,
+        report.score !== null ? `Score: ${report.score}` : null,
+        "",
+        "Strongest Signals:",
+        ...(report.strongest.length ? report.strongest.map(item => `- ${item.label}: ${formatPercent(item.accuracy)} (${item.correct}/${item.attempts})`) : ["- No clear strength signal yet."]),
+        "",
+        report.hasObjectiveWeakness ? "Weakest Learning Objectives:" : "Objective Signals:",
+        ...(report.hasObjectiveWeakness && report.weakestObjectives.length ? report.weakestObjectives.map(item => `- ${item.label}: ${formatPercent(item.accuracy)} (${item.correct}/${item.attempts})`) : ["- No major objective weakness detected. Try Legendary Mode next."]),
+        "",
+        report.hasTypeWeakness ? "Weakest Question Forms:" : "Question Form Signals:",
+        ...(report.hasTypeWeakness && report.weakestTypes.length ? report.weakestTypes.map(item => `- ${item.label}: ${formatPercent(item.accuracy)} (${item.correct}/${item.attempts})`) : ["- No major question-form weakness detected."]),
+        "",
+        report.hasSkillWeakness ? "Weakest Skills:" : "Skill Signals:",
+        ...(report.hasSkillWeakness && report.weakestSkills.length ? report.weakestSkills.map(item => `- ${item.label}: ${formatPercent(item.accuracy)} (${item.correct}/${item.attempts})`) : ["- No major skill weakness detected."]),
+        "",
+        "Next Moves:",
+        ...report.nextSteps.map(step => `- ${step}`)
+    ].filter(line => line !== null);
+
+    const text = lines.join("\n");
+
+    function markCopied(){
+        const btn = Array.from(document.querySelectorAll("button"))
+            .find(button => button.innerText === "Copy Report" || button.innerText === "Copied!");
+
+        if(!btn) return;
+        const original = btn.innerText;
+        btn.innerText = "Copied!";
+        setTimeout(() => { btn.innerText = original; }, 1800);
+    }
+
+    if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(markCopied);
+        return;
+    }
+
+    const temp = document.createElement("textarea");
+    temp.value = text;
+    document.body.appendChild(temp);
+    temp.select();
+    document.execCommand("copy");
+    temp.remove();
+    markCopied();
 }
 
 // =============================
