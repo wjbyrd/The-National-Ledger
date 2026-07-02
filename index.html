@@ -85,7 +85,7 @@ body {
     align-items: center;
     overflow-x: hidden;
     color: #f3ead2;
-    background: url('question_background_image.png');
+    background: url('question_background_image.webp');
     background-size: cover;
     background-position: center;
 }
@@ -966,7 +966,7 @@ button:active {
         rgba(4,5,5,0.22),
         rgba(4,5,5,0.46)
     ),
-    url('start screen image.png');
+    url('start screen image.webp');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -993,7 +993,7 @@ button:active {
         rgba(4,5,5,0.64),
         rgba(4,5,5,0.74)
     ),
-    url('hallway1.png');
+    url('hallway1.webp');
   background-size: cover;
   background-position: center;
   display: flex;
@@ -1724,7 +1724,7 @@ Every pixel matters.
   padding:30px;
   background:
     linear-gradient(rgba(4,5,5,.32), rgba(4,5,5,.78)),
-    url('question_background_image.png');
+    url('question_background_image.webp');
   background-size:cover;
   background-position:center;
 }
@@ -2426,16 +2426,16 @@ Respect structure strictly.
     <h1 class="mode-title">CHOOSE YOUR LEDGER RUN</h1>
     <p class="mode-subtitle">Select how you want to enter The National Ledger.</p>
     <div class="mode-grid">
-      <button class="mode-card" onclick="startSelectedMode('standard')"><img src="mode_standard.png" alt="" aria-hidden="true"><span class="mode-card-title">Standard Campaign</span><span class="mode-card-text">Full 30-room run with bosses, artifacts, setbacks, save status, and Realm progress.</span></button>
-      <button class="mode-card" onclick="startSelectedMode('timed')"><img src="mode_timed.png" alt="" aria-hidden="true"><span class="mode-card-title">Timed Trial</span><span class="mode-card-text">Ten minutes. Correct answers advance. Misses push you back. Advance as far as you can.</span></button>
-      <button class="mode-card" onclick="startSelectedMode('exam')"><img src="mode_exam.png" alt="" aria-hidden="true"><span class="mode-card-title">Exam Drill</span><span class="mode-card-text">No bosses. No artifacts. No Realm progress. Just adaptive practice.</span></button>
-      <button class="mode-card" onclick="startSelectedMode('legendary')"><img src="mode_legendary.png" alt="" aria-hidden="true"><span class="mode-card-title">Legendary Mode</span><span class="mode-card-text">Full campaign. Legendary questions. The Ledger will test you.</span></button>
+      <button class="mode-card" onclick="startSelectedMode('standard')"><img src="mode_standard.webp" alt="" aria-hidden="true"><span class="mode-card-title">Standard Campaign</span><span class="mode-card-text">Full 30-room run with bosses, artifacts, setbacks, save status, and Realm progress.</span></button>
+      <button class="mode-card" onclick="startSelectedMode('timed')"><img src="mode_timed.webp" alt="" aria-hidden="true"><span class="mode-card-title">Timed Trial</span><span class="mode-card-text">Ten minutes. Correct answers advance. Misses push you back. Advance as far as you can.</span></button>
+      <button class="mode-card" onclick="startSelectedMode('exam')"><img src="mode_exam.webp" alt="" aria-hidden="true"><span class="mode-card-title">Exam Drill</span><span class="mode-card-text">No bosses. No artifacts. No Realm progress. Just adaptive practice.</span></button>
+      <button class="mode-card" onclick="startSelectedMode('legendary')"><img src="mode_legendary.webp" alt="" aria-hidden="true"><span class="mode-card-title">Legendary Mode</span><span class="mode-card-text">Full campaign. Legendary questions. The Ledger will test you.</span></button>
 
       <!-- SCORE ATTACK MODE ADDITION:
            Arcade-style scoring mode. Uses the normal 30-room Ledger path and bosses,
            but does NOT count as Standard Campaign Realm progress. -->
       <button class="mode-card" onclick="startSelectedMode('score')" aria-label="Score Attack. Build points through correct answers, streaks, and speed. Misses subtract points and rapid guessing is punished.">
-        <img src="scoreattack.png" alt="" aria-hidden="true">
+        <img src="scoreattack.webp" alt="" aria-hidden="true">
         <span class="mode-card-title">Score Attack</span>
         <span class="mode-card-text">Rack up points with correct answers, streaks, and speed. Misses cost you.</span>
       </button>
@@ -2484,15 +2484,15 @@ or simplify this section.
             <h3>Acquired Artifacts</h3>
             <div class="vaultRow">
                 <div id="vaultSeal" class="artifactSlot">
-                    <img src="seal.png" alt="Registrar’s Seal">
+                    <img src="seal.webp" alt="Registrar’s Seal">
                     <span>Registrar’s Seal</span>
                 </div>
                 <div id="vaultPrism" class="artifactSlot">
-                    <img src="prism.png" alt="Warden’s Prism">
+                    <img src="prism.webp" alt="Warden’s Prism">
                     <span>Warden’s Prism</span>
                 </div>
                 <div id="vaultCrown" class="artifactSlot">
-                    <img src="crown.png" alt="Comptroller’s Crown">
+                    <img src="crown.webp" alt="Comptroller’s Crown">
                     <span>Comptroller’s Crown</span>
                 </div>
             </div>
@@ -2505,7 +2505,7 @@ or simplify this section.
         <div id="gameShell">
             <div id="wizardBox">
                 <div id="wizardName">The Custodian</div>
-                <img src="chancellor.png" id="wizardImage">
+                <img src="chancellor.webp" id="wizardImage">
             </div>
 
             <!-- GAME -->
@@ -2597,9 +2597,9 @@ const sfxWrong = new Audio('mistake.wav');
       sfxWrong.volume = 0.4;
     
 const hallwayImages = [
-    "hallway1.png",
-    "hallway2.png",
-    "hallway3.png"
+    "hallway1.webp",
+    "hallway2.webp",
+    "hallway3.webp"
 ];
 
 let soundEnabled = true;
@@ -4425,17 +4425,17 @@ const TIMING = {
      
 const artifacts = {
 seal:{
-    img:"seal.png",
+    img:"seal.webp",
     title:"Registrar’s Seal",
     text:"The first records reconcile. GDP, income, expenditure, CPI, inflation, and real values can now be separated from false measures."
 },
 prism:{
-    img:"prism.png",
+    img:"prism.webp",
     title:"The Warden’s Prism",
     text:"Growth now splits into its true sources. Productivity, capital, human capital, natural resources, technology, and policy can be read without distortion."
 },
 crown:{
-    img:"crown.png",
+    img:"crown.webp",
     title:"The Comptroller’s Crown",
     text:"The labor record is restored. Employment, unemployment, participation, job search, mismatch, policy effects, and the natural rate now balance in the ledger."
 }
@@ -6230,9 +6230,9 @@ function updateMazeTrack() {
             box.innerText = "🟨";
         } else {
             // Boss icons for future rooms
-            if (i === 10){box.innerHTML = '<img src="registrar.png" class="boss-icon">';box.classList.add("boss10");}
-            else if (i === 20){box.innerHTML = '<img src="warden.png" class="boss-icon">';box.classList.add("boss20");}
-            else if (i === 30){box.innerHTML = '<img src="comptroller.png" class="boss-icon">';box.classList.add("boss30");}
+            if (i === 10){box.innerHTML = '<img src="registrar.webp" class="boss-icon">';box.classList.add("boss10");}
+            else if (i === 20){box.innerHTML = '<img src="warden.webp" class="boss-icon">';box.classList.add("boss20");}
+            else if (i === 30){box.innerHTML = '<img src="comptroller.webp" class="boss-icon">';box.classList.add("boss30");}
             else box.innerText = "⬛";
         }
         
@@ -6530,15 +6530,15 @@ if (isBoss) {
     // =============================================
 
     if (room === 10) {
-        bossImage = "registrar.png";
+        bossImage = "registrar.webp";
         bossClass = "registrarGlow";
     }
     else if (room === 20) {
-        bossImage = "warden.png";
+        bossImage = "warden.webp";
         bossClass = "wardenGlow";
     }
     else {
-        bossImage = "comptroller.png";
+        bossImage = "comptroller.webp";
         bossClass = "comptrollerGlow";
     }
 
@@ -7288,15 +7288,15 @@ function unlockArtifact(key) {
     let streakColor = "#fbbf24";
 
 if (streak === 5) {
-    streakMsg = `<span class="streak"><img src="streakmark.png" class="streak-icon">CALIBRATION MARKED</span>`;
+    streakMsg = `<span class="streak"><img src="streakmark.webp" class="streak-icon">CALIBRATION MARKED</span>`;
     streakColor = "#d6b15c";
 }
 else if (streak === 10) {
-    streakMsg = `<span class="streak"><img src="streakspark.png" class="streak-icon">STABILITY SPARKED</span>`;
+    streakMsg = `<span class="streak"><img src="streakspark.webp" class="streak-icon">STABILITY SPARKED</span>`;
     streakColor = "#c46a3a";
 }
 else if (streak === 20) {
-    streakMsg = `<span class="streak"><img src="streakstar.png" class="streak-icon">CONTINUITY STARRED</span>`;
+    streakMsg = `<span class="streak"><img src="streakstar.webp" class="streak-icon">CONTINUITY STARRED</span>`;
     streakColor = "#f0c75e";
 }
 
