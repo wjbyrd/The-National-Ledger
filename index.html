@@ -1,10 +1,4 @@
-<!-- NATIONAL LEDGER PATCH — 2026-07-10
-- Preserves Standard artifacts and completion across all nonstandard modes
-- Counts Realm correct answers once
-- Selects complete three-question boss scaffolds; Legendary Boss remains random
-- Removes duplicate boss prompts and drafting residue
-- Reduces major correct-answer length giveaways without flattening every option
--->
+<!-- NATIONAL LEDGER PATCH — 2026-07-17
 
 <!-- =====================================================
 GAUNTLET ENGINE — MASTER TEMPLATE
@@ -62,6 +56,7 @@ If you break something:
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
     
 <!-- Title can be changed to whatever the game needs -->
@@ -2497,7 +2492,7 @@ Respect structure strictly.
 <div id="startScreen">
   <div class="start-content">
     <h1 class="title">THE NATIONAL LEDGER</h1>
-    <input id="emailInput" type="email" placeholder="Enter your school email" class="name-input">
+    <input id="emailInput" type="email" placeholder="Enter your school email" class="name-input" aria-label="School email">
     <button class="start-btn" onclick="showModeSelect()">ENTER THE LEDGER</button>
     <button id="continueRunBtn" class="start-btn secondary-start-btn" onclick="continueSavedRun()" style="display:none;">
         CONTINUE STANDARD RUN
@@ -2584,12 +2579,12 @@ or simplify this section.
     </div>
 
     <!-- MAIN PANEL -->
-    <!-- Main game area: Chancellor + question interface -->
+    <!-- Main game area: Custodian + question interface -->
     <div class="main-panel">
         <div id="gameShell">
             <div id="wizardBox">
                 <div id="wizardName">The Custodian</div>
-                <img src="../chancellor.webp" id="wizardImage">
+            <img src="../chancellor.webp" id="wizardImage" alt="The Custodian">
             </div>
 
             <!-- GAME -->
@@ -2821,7 +2816,7 @@ let runID = "";
 let questionStartTime = 0;
 let streak = 0; 
 let startTime; // Will be set in startGame()
-let room = localStorage.getItem("gauntletRoom") ? parseInt(localStorage.getItem("gauntletRoom")) : 1;
+let room = localStorage.getItem("nationalLedgerRoom") ? parseInt(localStorage.getItem("nationalLedgerRoom")) : 1;
 let currentQuestion = null;
 let detourActive = false;
 let detourReturnRoom = null;
@@ -2984,7 +2979,7 @@ function setMissionArtifactCount(count){
 }
 
 function updateMissionArtifactCountFromVault(){
-    const artifactCount = ["vaultSeal", "vaultPrism", "vaultCrown"]
+    const artifactCount = ["nationalLedgerVaultSeal", "vaultPrism", "vaultCrown"]
         .filter(key => localStorage.getItem(key) === "true").length;
 
     setMissionArtifactCount(artifactCount);
@@ -3256,14 +3251,14 @@ function saveGameState(){
         },
 
         artifacts: {
-            vaultSeal: localStorage.getItem("vaultSeal") === "true",
+ 	   vaultSeal: localStorage.getItem("nationalLedgerVaultSeal") === "true",
             vaultPrism: localStorage.getItem("vaultPrism") === "true",
             vaultCrown: localStorage.getItem("vaultCrown") === "true"
         }
     };
 
     localStorage.setItem(getSaveKey(), JSON.stringify(saveData));
-    localStorage.setItem("gauntletRoom", String(room));
+        localStorage.setItem("nationalLedgerRoom", String(room));
     if(modeAllowsRealmProgress()){
         localStorage.setItem(REALM_STARTED_KEY, "true");
         localStorage.setItem(REALM_STATUS_KEY, "contested");
@@ -3312,7 +3307,7 @@ function loadSavedGame(){
         bossMistakeCountThisRun = Number(saveData.achievementTracking?.bossMistakeCountThisRun || 0);
         bossesDefeatedThisRun = Number(saveData.achievementTracking?.bossesDefeatedThisRun || 0);
 
-        if(saveData.artifacts?.vaultSeal) localStorage.setItem("vaultSeal", "true");
+		if(saveData.artifacts?.vaultSeal) localStorage.setItem("nationalLedgerVaultSeal", "true");
         if(saveData.artifacts?.vaultPrism) localStorage.setItem("vaultPrism", "true");
         if(saveData.artifacts?.vaultCrown) localStorage.setItem("vaultCrown", "true");
 
@@ -3329,7 +3324,7 @@ function clearSavedGame(){
     localStorage.removeItem(getSaveKey());
 
     if(gameMode === "standard"){
-        localStorage.removeItem("gauntletRoom");
+        localStorage.removeItem("nationalLedgerRoom");
     }
 }
 
@@ -4553,7 +4548,7 @@ crown:{
 
 function getRecoveryLine(stage){
   if(stage === "repair"){
-    return "Recovery ledger opened. The Chancellor is isolating the bad entry.";
+    return "Recovery ledger opened. The Custodian is isolating the bad entry.";
   }
 
   if(stage === "bridge"){
@@ -4811,10 +4806,10 @@ function startGame(shouldResume = false) {
         resetScoreAttackState();
 
         if(gameMode === "standard"){
-            localStorage.removeItem("gauntletRoom");
+            localStorage.removeItem("nationalLedgerRoom");
 
             // A new Standard Campaign starts a clean artifact run. Other modes never touch it.
-            localStorage.removeItem("vaultSeal");
+	    localStorage.removeItem("nationalLedgerVaultSeal");
             localStorage.removeItem("vaultPrism");
             localStorage.removeItem("vaultCrown");
             localStorage.removeItem(REALM_COMPLETE_KEY);
@@ -4853,7 +4848,7 @@ function startGame(shouldResume = false) {
    // IMPORTANT:
    // localStorage keys must match the HTML element ids.
    // =============================================    
-    if(localStorage.getItem("vaultSeal")){
+    if(localStorage.getItem("nationalLedgerVaultSeal")){
         document.getElementById("vaultSeal").classList.add("unlocked");
     }
 
@@ -6230,9 +6225,9 @@ function updateMazeTrack() {
             box.innerText = "🟨";
         } else {
             // Boss icons for future rooms
-            if (i === 10){box.innerHTML = '<img src="registrar.webp" class="boss-icon">';box.classList.add("boss10");}
-            else if (i === 20){box.innerHTML = '<img src="warden.webp" class="boss-icon">';box.classList.add("boss20");}
-            else if (i === 30){box.innerHTML = '<img src="comptroller.webp" class="boss-icon">';box.classList.add("boss30");}
+            if (i === 10){box.innerHTML = '<img src="registrar.webp" class="boss-icon" alt="" aria-hidden="true">';box.classList.add("boss10");}
+            else if (i === 20){box.innerHTML = '<img src="warden.webp" class="boss-icon" alt="" aria-hidden="true">';box.classList.add("boss20");}
+            else if (i === 30){box.innerHTML = '<img src="comptroller.webp" class="boss-icon" alt="" aria-hidden="true">';box.classList.add("boss30");}
             else box.innerText = "⬛";
         }
         
@@ -6399,6 +6394,15 @@ document.addEventListener("click", function(event){
 });
 
 document.addEventListener("keydown", function(event){
+    const target = event.target;
+    const graphImg = target && target.matches ? target.matches("#questionImageBox img") : false;
+
+    if(graphImg && (event.key === "Enter" || event.key === " ")){
+        event.preventDefault();
+        openGraphLightbox(target.src, target.alt);
+        return;
+    }
+
     if(event.key === "Escape"){
         closeGraphLightbox();
     }
@@ -6538,7 +6542,7 @@ if (isBoss) {
     currentQuestion = shuffleOptions(bossPool[3 - bossHealth]);
 
     if (currentQuestion.image) {
-        imageBox.innerHTML = `<img src="${currentQuestion.image}" alt="Question graph" title="Click to enlarge"><div class="graph-zoom-note">Click graph to enlarge</div>`;
+        imageBox.innerHTML = `<img src="${currentQuestion.image}" alt="Question graph" title="Click to enlarge" role="button" tabindex="0" aria-label="Open expanded question graph"><div class="graph-zoom-note">Click graph to enlarge</div>`;
         imageBox.style.display = "block";
     } else {
         imageBox.innerHTML = "";
@@ -6588,7 +6592,7 @@ if (isBoss) {
     }
 
     questionElement.innerHTML = `
-        <img src="${bossImage}" class="bossIcon ${bossClass}">
+        <img src="${bossImage}" class="bossIcon ${bossClass}" alt="${bTitle}">
         <span class="boss-title" style="color:${bColor}">${bTitle}</span>
         <div class="boss-q" style="--bossColor:${bColor}">
             ${currentQuestion.q}
@@ -6620,7 +6624,7 @@ if (isBoss) {
     );
 
     if(currentQuestion.image){
-        imageBox.innerHTML = `<img src="${currentQuestion.image}" alt="Question graph" title="Click to enlarge"><div class="graph-zoom-note">Click graph to enlarge</div>`;
+        imageBox.innerHTML = `<img src="${currentQuestion.image}" alt="Question graph" title="Click to enlarge" role="button" tabindex="0" aria-label="Open expanded question graph"><div class="graph-zoom-note">Click graph to enlarge</div>`;
         imageBox.style.display = "block";
     } else {
         imageBox.innerHTML = "";
@@ -6696,7 +6700,7 @@ else{
 }
 		
 if(currentQuestion.image){
-    imageBox.innerHTML = `<img src="${currentQuestion.image}" alt="Question graph" title="Click to enlarge"><div class="graph-zoom-note">Click graph to enlarge</div>`;
+    imageBox.innerHTML = `<img src="${currentQuestion.image}" alt="Question graph" title="Click to enlarge" role="button" tabindex="0" aria-label="Open expanded question graph"><div class="graph-zoom-note">Click graph to enlarge</div>`;
     imageBox.style.display = "block";
 }
 
@@ -7109,7 +7113,7 @@ if(remediationState.active){
         if(modeAllowsRealmProgress()){
     if(room === 10){
         document.getElementById("vaultSeal").classList.add("unlocked");
-        localStorage.setItem("vaultSeal", "true");
+        localStorage.setItem("nationalLedgerVaultSeal", "true");
         showArtifact(artifacts.seal.img, artifacts.seal.title, artifacts.seal.text);
     }
 
@@ -7140,7 +7144,7 @@ if(remediationState.active){
    room++;
    timedHighestRoom = Math.max(timedHighestRoom, Math.min(room, 30));
    saveGameState();
-   localStorage.setItem("gauntletRoom", room);
+       localStorage.setItem("nationalLedgerRoom", room);
 
    if(gameMode === "timed" && timedModeEndTime && Date.now() >= timedModeEndTime){
        endTimedModeRun();
@@ -7303,11 +7307,12 @@ if (gameMode !== "legendary" && !remediationState.active && currentQuestion.tag 
 // Safe to customize artifact visuals/text only
 function unlockArtifact(key) {
     const id = "vault" + key.charAt(0).toUpperCase() + key.slice(1);
+    const storageId = id === "vaultSeal" ? "nationalLedgerVaultSeal" : id;
     const slot = document.getElementById(id);
 
     if(slot){
         slot.classList.add("unlocked");
-        localStorage.setItem(id, "true");
+        localStorage.setItem(storageId, "true");
         updateMissionArtifactCountFromVault();
     }
 
@@ -7331,15 +7336,15 @@ function unlockArtifact(key) {
     let streakColor = "#fbbf24";
 
 if (streak === 5) {
-    streakMsg = `<span class="streak"><img src="streakmark.webp" class="streak-icon">CALIBRATION MARKED</span>`;
+        streakMsg = `<span class="streak"><img src="streakmark.webp" class="streak-icon" alt="" aria-hidden="true">CALIBRATION MARKED</span>`;
     streakColor = "#d6b15c";
 }
 else if (streak === 10) {
-    streakMsg = `<span class="streak"><img src="streakspark.webp" class="streak-icon">STABILITY SPARKED</span>`;
+        streakMsg = `<span class="streak"><img src="streakspark.webp" class="streak-icon" alt="" aria-hidden="true">STABILITY SPARKED</span>`;
     streakColor = "#c46a3a";
 }
 else if (streak === 20) {
-    streakMsg = `<span class="streak"><img src="streakstar.webp" class="streak-icon">CONTINUITY STARRED</span>`;
+        streakMsg = `<span class="streak"><img src="streakstar.webp" class="streak-icon" alt="" aria-hidden="true">CONTINUITY STARRED</span>`;
     streakColor = "#f0c75e";
 }
 
@@ -7407,6 +7412,7 @@ function showArtifact(img,title,text){
     let p = document.getElementById("artifactText");
 
     image.src = img;
+    image.alt = title;
     t.innerText = title;
     p.innerText = text;
 
@@ -8570,14 +8576,14 @@ function shuffleArray(arr){
 // Clearing browser data will erase scores.
 // =============================================
 function updateHighScores(newTimeMs) {
-    let scores = JSON.parse(localStorage.getItem("gauntletHighScores")) || [];
+    let scores = JSON.parse(localStorage.getItem("nationalLedgerHighScores")) || [];
     scores.push({ name: username, time: newTimeMs, date: new Date().toLocaleDateString() });
     
     // Sort by time (lowest/fastest first) and keep top 5
     scores.sort((a, b) => a.time - b.time);
     scores = scores.slice(0, 5);
     
-    localStorage.setItem("gauntletHighScores", JSON.stringify(scores));
+    localStorage.setItem("nationalLedgerHighScores", JSON.stringify(scores));
     return scores;
 }
 
@@ -8634,7 +8640,7 @@ function copyResults() {
         Best Streak: ${maxStreak}
         Total Questions: ${totalAttempts}
         Code: ${code}
-        Verified by The Chancellor`;
+Verified by The Custodian`;
 
     navigator.clipboard.writeText(shareText).then(() => {
         const btn = document.getElementById("shareBtn");
@@ -8712,8 +8718,6 @@ function sendGameData(data) {
 </script>
 </body>
 </html>
-
-
 
 
 
