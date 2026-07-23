@@ -2426,7 +2426,11 @@ body.game-active #soundToggle {
     .mastery-row-score{ white-space:normal; }
 }
 
+
+/* 16. INSTRUCTIONAL RESOURCE RECOMMENDATIONS */
+.resource-recommendation-section{margin-top:14px}.resource-recommendation-intro{color:#e2d7b9;line-height:1.55;margin:0 0 14px}.resource-recommendation-list{display:grid;grid-template-columns:1fr;gap:12px}.resource-card{min-width:0;padding:16px;border:1px solid rgba(214,177,92,.48);border-radius:11px;background:linear-gradient(135deg,rgba(64,84,67,.92),rgba(11,14,12,.97));box-shadow:0 0 16px rgba(0,0,0,.38),inset 0 0 18px rgba(214,177,92,.07)}.resource-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.resource-card-title{min-width:0;margin:0;color:#f5db9b;font-size:17px;font-weight:800;line-height:1.32;overflow-wrap:anywhere}.resource-card-type{flex:0 0 auto;max-width:100%;padding:4px 8px;border:1px solid rgba(214,177,92,.62);border-radius:999px;color:#efe0b1;font-size:10px;font-weight:800;letter-spacing:.8px;line-height:1.2;text-transform:uppercase;overflow-wrap:anywhere}.resource-card-description{margin:10px 0 14px;color:rgba(243,234,210,.93);line-height:1.55;overflow-wrap:anywhere}.resource-card-link{display:inline-flex;align-items:center;justify-content:center;min-height:40px;max-width:100%;padding:9px 14px;border:1px solid rgba(244,213,141,.8);border-radius:8px;background:linear-gradient(180deg,#5a704e,#334331);color:#fff6d7;font-weight:800;text-align:center;text-decoration:none}.resource-card-link:hover{background:linear-gradient(180deg,#71865c,#43583d);transform:translateY(-1px)}.resource-card-link:focus-visible{outline:3px solid #f5db9b;outline-offset:3px;box-shadow:0 0 0 5px rgba(214,177,92,.45)}.review-materials-screen .mastery-section h2{margin:0 0 12px;color:#f4d58d;font-size:18px}.review-objective-list{margin:0;padding-left:22px;color:#f3ead2}.review-objective-list li{margin:7px 0;line-height:1.48}@media(max-width:420px){.resource-card{padding:14px}.resource-card-header{flex-direction:column;gap:8px}.resource-card-link{display:flex;width:100%;box-sizing:border-box}}
 </style>
+<script src="instructional_resources.js"></script>
 </head>
 
 <!-- =========================================
@@ -8384,6 +8388,21 @@ function getMasteryReportModeName(){
     return getModeDisplayName();
 }
 
+const INSTRUCTIONAL_RESOURCE_TYPE_LABELS={video:"Lecture Video","worked-problem":"Worked-Problems Video",slides:"Lecture Slides",other:"Course Material"};
+function getInstructionalResourceConfig(){const c=window.INSTRUCTIONAL_RESOURCES;return c&&typeof c==="object"&&c.chapters&&typeof c.chapters==="object"?c:null;}
+function normalizeLearningObjectiveId(v){const m=String(v||"").trim().match(/^(?:LO\s*)?(\d+)\s*[._\-\s]\s*(\d+)(?:[_\-\s].*)?$/i);if(!m)return null;const id=`LO${Number(m[1])}.${Number(m[2])}`,c=getInstructionalResourceConfig();return c?.objectives?.[id]?id:null;}
+function getChapterFromLearningObjective(v){const id=normalizeLearningObjectiveId(v);return id?id.match(/^LO(\d+)\./)[1]:null;}
+function isSafeInstructionalResourceUrl(v){if(typeof v!=="string"||!v.trim())return false;const u=v.trim();if(/^https:\/\//i.test(u)){try{return new URL(u).protocol==="https:"}catch(e){return false}}return /^resources\/(?:[^\\/:?#]+\/)*[^\\/:?#]+\.(?:ppt|pptx|pdf)$/i.test(u)&&!/(?:^|\/)\.\.(?:\/|$)/.test(u);}
+function getObjectiveResourceMapping(c,id){return c?.objectives?.[id]||null;}
+function resolveInstructionalResourceById(c,id){for(const ch of Object.values(c?.chapters||{}))for(const r of Array.isArray(ch?.resources)?ch.resources:[])if(r?.id===id&&typeof r.title==="string"&&isSafeInstructionalResourceUrl(r.url))return r;return null;}
+function getRecommendedResources(rawIds){const c=getInstructionalResourceConfig();if(!c||!Array.isArray(rawIds)||!rawIds.length)return[];const max=Math.max(1,Math.min(3,Number(c.settings?.maximumRecommendations)||3)),chosen=new Map(),add=r=>{if(r?.id&&!chosen.has(r.id)&&isSafeInstructionalResourceUrl(r.url))chosen.set(r.id,r)};rawIds.forEach(raw=>{if(chosen.size>=max)return;const id=normalizeLearningObjectiveId(raw);if(!id)return;const exact=getObjectiveResourceMapping(c,id)?.resourceIds||[];exact.map(x=>resolveInstructionalResourceById(c,x)).filter(Boolean).forEach(add);if(chosen.size>=max||c.settings?.enableChapterFallback===false)return;const ch=c.chapters?.[getChapterFromLearningObjective(id)];(ch?.fallbackResourceIds||[]).map(x=>resolveInstructionalResourceById(c,x)).filter(Boolean).forEach(add)});return Array.from(chosen.values()).slice(0,max);}
+function getWeakLearningObjectiveIds(report){return report?.hasObjectiveWeakness&&Array.isArray(report.weakestObjectives)?report.weakestObjectives.map(x=>x?.key).filter(x=>normalizeLearningObjectiveId(x)):[];}
+function getInstructionalObjectiveTitle(id){const n=normalizeLearningObjectiveId(id);return n?getObjectiveResourceMapping(getInstructionalResourceConfig(),n)?.title||n:formatMasteryLabel(id);}
+function getInstructionalResourceActionLabel(r){return r?.type==="slides"?"Open Slides":"Watch Video";}
+function renderInstructionalResourceCards(resources){return resources.map(r=>{const type=INSTRUCTIONAL_RESOURCE_TYPE_LABELS[r.type]||INSTRUCTIONAL_RESOURCE_TYPE_LABELS.other,desc=r.description?`<p class="resource-card-description">${escapeHTML(r.description)}</p>`:"";return `<article class="resource-card"><div class="resource-card-header"><h4 class="resource-card-title">${escapeHTML(r.title)}</h4><span class="resource-card-type">${escapeHTML(type)}</span></div>${desc}<a class="resource-card-link" href="${escapeHTML(r.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(getInstructionalResourceActionLabel(r))}</a></article>`}).join("");}
+function renderInstructionalResourceSection(report){const weak=getWeakLearningObjectiveIds(report);if(!weak.length)return"";const intro="Based on the weakest learning objectives in this run, start with these materials before your next attempt.",r=getRecommendedResources(weak),body=r.length?`<div class="resource-recommendation-list">${renderInstructionalResourceCards(r)}</div>`:'<p class="mastery-empty">No review material is available for these objectives yet.</p>';return `<div class="mastery-section resource-recommendation-section"><h3>Recommended Review</h3><p class="resource-recommendation-intro">${intro}</p>${body}<div class="mastery-actions"><button class="continue-btn" type="button" onclick="openInstructionalReviewScreen()">Review Materials</button></div></div>`;}
+function createInstructionalResourceCard(r){const a=document.createElement("article"),h=document.createElement("div"),t=document.createElement("h3"),k=document.createElement("span"),d=document.createElement("p"),l=document.createElement("a");a.className="resource-card";h.className="resource-card-header";t.className="resource-card-title";t.textContent=r.title;k.className="resource-card-type";k.textContent=INSTRUCTIONAL_RESOURCE_TYPE_LABELS[r.type]||INSTRUCTIONAL_RESOURCE_TYPE_LABELS.other;h.append(t,k);a.append(h);if(r.description){d.className="resource-card-description";d.textContent=r.description;a.append(d)}l.className="resource-card-link";l.href=r.url;l.target="_blank";l.rel="noopener noreferrer";l.textContent=getInstructionalResourceActionLabel(r);a.append(l);return a;}
+function openInstructionalReviewScreen(){const box=document.getElementById("gameBox");if(!box)return;const report=getMasteryReportData(),weak=getWeakLearningObjectiveIds(report),r=getRecommendedResources(weak),screen=document.createElement("section"),title=document.createElement("h1"),sub=document.createElement("p"),os=document.createElement("div"),oh=document.createElement("h2"),list=document.createElement("ul"),rs=document.createElement("div"),rh=document.createElement("h2"),intro=document.createElement("p"),cards=document.createElement("div"),actions=document.createElement("div");screen.id="instructionalReviewScreen";screen.className="mastery-report-screen review-materials-screen";title.id="instructionalReviewTitle";title.className="mastery-report-title";title.tabIndex=-1;title.textContent="REVIEW BEFORE YOUR NEXT ATTEMPT";sub.className="mastery-report-subtitle";sub.textContent="Use these materials to reinforce the concepts that showed the weakest signal in this run.";os.className="mastery-section";oh.textContent="Learning Objectives to Review";list.className="review-objective-list";weak.forEach(id=>{const li=document.createElement("li");li.textContent=`${id}: ${getInstructionalObjectiveTitle(id)}`;list.append(li)});os.append(oh,list);rs.className="mastery-section";rh.textContent="Recommended Materials";intro.className="resource-recommendation-intro";intro.textContent="Based on the weakest learning objectives in this run, start with these materials before your next attempt.";cards.className="resource-recommendation-list";r.forEach(x=>cards.append(createInstructionalResourceCard(x)));if(!r.length)cards.textContent="No review material is available for these objectives yet.";rs.append(rh,intro,cards);actions.className="mastery-actions";[["Return to Mastery Report",()=>showMasteryReportScreen(true),"continue-btn"],["Replay Mission",()=>location.reload(),"continue-btn secondary-modal-btn"],["Choose Another Ledger Run",()=>returnToModeSelectFromRun(),"continue-btn secondary-modal-btn"]].forEach(([x,f,c])=>{const b=document.createElement("button");b.type="button";b.className=c;b.textContent=x;b.addEventListener("click",f);actions.append(b)});screen.append(title,sub,os,rs,actions);box.replaceChildren(screen);title.focus();}
 function getMasteryReportData(){
     const totalTimeMs = startTime ? (Date.now() - startTime) : 0;
     const accuracy = totalAttempts > 0 ? correctAnswers / totalAttempts : 0;
@@ -8434,7 +8453,7 @@ function getMasteryReportData(){
         }
 
         if(hasTypeWeakness && weakestTypes[0]){
-            nextSteps.push(`Practice ${weakestTypes[0].label} questions. That question form caused the most trouble.`);
+            nextSteps.push(`Practice ${weakestTypes[0].label} questions. That question type caused the most trouble.`);
         }
 
         if(hasSkillWeakness && weakestSkills[0]){
@@ -8475,15 +8494,16 @@ function getMasteryReportData(){
     };
 }
 
-function showMasteryReportScreen(){
+function showMasteryReportScreen(preserveResultsScreen = false){
     const gameBox = document.getElementById("gameBox");
     if(!gameBox) return;
 
-    if(!document.getElementById("masteryReportScreen")){
+    if(!preserveResultsScreen && !document.getElementById("masteryReportScreen")){
         latestResultsScreenHTML = gameBox.innerHTML;
     }
 
     const report = getMasteryReportData();
+    const recommendationSection = renderInstructionalResourceSection(report);
     const scoreCard = report.score !== null
         ? `<div class="mastery-stat-card"><span class="mastery-stat-label">Score</span><span class="mastery-stat-value">${report.score}</span></div>`
         : "";
@@ -8518,13 +8538,15 @@ function showMasteryReportScreen(){
                 cleanText: "No major objective weakness detected. Push into Legendary Mode to see whether the signal holds under harder multi-step pressure."
             })}
 
+            ${recommendationSection}
+
             ${renderMasteryDiagnosticSection({
-                weaknessTitle: "Weakest Question Forms",
-                signalTitle: "Question Form Signals",
+                weaknessTitle: "Weakest Question Types",
+                signalTitle: "Question-Type Signals",
                 entries: report.weakestTypes,
                 hasWeakness: report.hasTypeWeakness,
                 weaknessEmptyText: "No question-type weakness was detected.",
-                cleanText: "No major question-form weakness detected. The next useful test is harder prompts, closer traps, and less obvious wording."
+                cleanText: "No major weakness was detected across question types. A more challenging mode can test whether that performance holds with multi-step questions, closer answer choices, and less obvious wording."
             })}
 
             ${renderMasteryDiagnosticSection({
@@ -8606,8 +8628,8 @@ function copyMasteryReport(){
         report.hasObjectiveWeakness ? "Weakest Learning Objectives:" : "Objective Signals:",
         ...(report.hasObjectiveWeakness && report.weakestObjectives.length ? report.weakestObjectives.map(item => `- ${item.label}: ${formatPercent(item.accuracy)} (${item.correct}/${item.attempts})`) : ["- No major objective weakness detected. Try Legendary Mode next."]),
         "",
-        report.hasTypeWeakness ? "Weakest Question Forms:" : "Question Form Signals:",
-        ...(report.hasTypeWeakness && report.weakestTypes.length ? report.weakestTypes.map(item => `- ${item.label}: ${formatPercent(item.accuracy)} (${item.correct}/${item.attempts})`) : ["- No major question-form weakness detected."]),
+        report.hasTypeWeakness ? "Weakest Question Types:" : "Question-Type Signals:",
+        ...(report.hasTypeWeakness && report.weakestTypes.length ? report.weakestTypes.map(item => `- ${item.label}: ${formatPercent(item.accuracy)} (${item.correct}/${item.attempts})`) : ["- No major weakness was detected across question types. A more challenging mode can test whether that performance holds with multi-step questions, closer answer choices, and less obvious wording."]),
         "",
         report.hasSkillWeakness ? "Weakest Skills:" : "Skill Signals:",
         ...(report.hasSkillWeakness && report.weakestSkills.length ? report.weakestSkills.map(item => `- ${item.label}: ${formatPercent(item.accuracy)} (${item.correct}/${item.attempts})`) : ["- No major skill weakness detected."]),
