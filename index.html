@@ -1722,11 +1722,12 @@ Every pixel matters.
     display: block;
   }
 
-  #gameBox{
-    width: 100%;
-    padding: 8px;
-    margin: 0 auto;
-    box-sizing: border-box;
+    #gameBox{
+    width:100%; max-width:100%; margin:0 auto; padding:12px 10px; box-sizing:border-box;
+    text-align:center; border-radius:12px; backdrop-filter:blur(6px);
+    background:radial-gradient(circle at center,rgba(96,165,250,.13) 0%,rgba(15,23,42,.58) 46%,rgba(8,16,36,.94) 74%,rgba(2,6,23,.99) 100%);
+    border:1px solid rgba(247,217,130,.34);
+    box-shadow:0 0 18px rgba(96,165,250,.18),0 0 42px rgba(247,217,130,.10),0 0 54px rgba(15,23,42,.72),inset 0 0 30px rgba(0,0,0,.78);
   }
 
   #autosave{
@@ -5079,6 +5080,10 @@ function endTimedModeRun(){
     const accuracy = totalAttempts > 0
         ? Math.round((correctAnswers / totalAttempts) * 100)
         : 0;
+    const totalTimeMs = freezeCompletionTime(timedModeDurationMs);
+    const timeString = formatTime(totalTimeMs);
+    const verificationCode = generateCode(username + "|TIMED", accuracy, maxStreak, totalTimeMs);
+
 
     const bestRoom = Number(localStorage.getItem("nationalLedgerTimedBestRoom") || 0);
     if(timedHighestRoom > bestRoom){
@@ -5108,13 +5113,13 @@ function endTimedModeRun(){
         responseTime: 0,
         attempt: totalAttempts,
         streak: streak,
-        elapsedTime: startTime ? (Date.now() - startTime) : 0,
+        elapsedTime: totalTimeMs,
         adaptiveMode: "timed_complete",
-        totalTime: timedModeDurationMs,
+        totalTime: totalTimeMs,
         accuracy: accuracy / 100,
         maxStreak: maxStreak,
-        totalAttempts: totalAttempts
-    });
+        totalAttempts: totalAttempts,
+        verificationCode    });
 
     document.getElementById("bossMessage").innerText = "";
     document.getElementById("formulaHint").innerText = "";
@@ -5130,7 +5135,12 @@ function endTimedModeRun(){
             Accuracy: ${accuracy}%<br>
             Total Attempts: ${totalAttempts}<br>
             Best Streak: ${maxStreak}<br>
-            Setbacks Taken: ${timedSetbacks}
+            Setbacks Taken: ${timedSetbacks}<br>
+            Total Time: ${timeString}<br>
+            Run ID: <strong>${runID}</strong><br>
+            Verification Code: <strong>${verificationCode}</strong><br>
+            Run ID: <strong>${runID}</strong><br>
+            Verification Code: <strong>${verificationCode}</strong>
         </div>
     `;
 
@@ -6941,7 +6951,7 @@ if(rapidGuess.triggered && !rapidGuessLocked){
     sendGameData({
         runID: runID,
         game: "The National Ledger",
-        event: "rapid_guessing",
+        event: "question",
         user: username || "anonymous",
         room: room,
         questionId: currentQuestion.id || 0,
@@ -7687,8 +7697,7 @@ function handleLegendaryVictory(){
         accuracy: accuracy / 100,
         maxStreak,
         totalAttempts,
-        verificationCode
-    });
+        verificationCode    });
 
     let judgment = "Legendary Ledger run confirmed. You handled national output, prices, growth, productivity, and labor-market traps under pressure.";
     if(accuracy >= 90){
@@ -7709,6 +7718,8 @@ function handleLegendaryVictory(){
             Total Attempts: ${totalAttempts}<br>
             Best Streak: ${maxStreak}<br>
             Total Time: ${timeString}<br>
+            Run ID: <strong>${runID}</strong><br>
+            Verification Code: <strong>${verificationCode}</strong><br>
             Verification Code: <strong>${verificationCode}</strong>
         </div>
     `;
@@ -7737,6 +7748,7 @@ function handleScoreAttackVictory(){
         ? Math.round((correctAnswers / totalAttempts) * 100)
         : 0;
 
+    const verificationCode = generateCode(username + "|SCORE", accuracy, maxStreak, totalTimeMs);
     storeScoreAttackFinalStats(accuracy, totalTimeMs);
 
     sendGameData({
@@ -7761,8 +7773,8 @@ function handleScoreAttackVictory(){
         totalAttempts,
         score: scoreAttackScore,
         bestScore: scoreAttackBestScore,
-        scoreEvents: JSON.stringify(scoreAttackEvents)
-    });
+        scoreEvents: JSON.stringify(scoreAttackEvents),
+        verificationCode    });
 
     let scoreLine = "Respectable. The Ledger noticed.";
     if(scoreAttackScore >= 9250){
@@ -7788,7 +7800,9 @@ function handleScoreAttackVictory(){
             Accuracy: ${accuracy}%<br>
             Total Attempts: ${totalAttempts}<br>
             Best Streak: ${maxStreak}<br>
-            Total Time: ${timeString}
+            Total Time: ${timeString}<br>
+            Run ID: <strong>${runID}</strong><br>
+            Verification Code: <strong>${verificationCode}</strong>
         </div>
     `;
 
@@ -7814,6 +7828,10 @@ function handlePracticeModeComplete(){
     const accuracy = totalAttempts > 0
         ? Math.round((correctAnswers / totalAttempts) * 100)
         : 0;
+    const totalTimeMs = freezeCompletionTime();
+    const timeString = formatTime(totalTimeMs);
+    const verificationCode = generateCode(username + "|" + String(gameMode).toUpperCase(), accuracy, maxStreak, totalTimeMs);
+
 
 	if(gameMode === "exam"){
 	    markExamDrillCompleted();
@@ -7833,13 +7851,13 @@ function handlePracticeModeComplete(){
         responseTime: 0,
         attempt: totalAttempts,
         streak,
-        elapsedTime: startTime ? (Date.now() - startTime) : 0,
+        elapsedTime: totalTimeMs,
         adaptiveMode: `${gameMode}_complete`,
-        totalTime: startTime ? (Date.now() - startTime) : 0,
+        totalTime: totalTimeMs,
         accuracy: accuracy / 100,
         maxStreak,
-        totalAttempts
-    });
+        totalAttempts,
+        verificationCode    });
 
     document.getElementById("bossMessage").innerText = "";
     document.getElementById("formulaHint").innerText = "";
@@ -7851,7 +7869,10 @@ function handlePracticeModeComplete(){
             You reached the end of this practice path.<br><br>
             Accuracy: ${accuracy}%<br>
             Total Attempts: ${totalAttempts}<br>
-            Best Streak: ${maxStreak}
+            Best Streak: ${maxStreak}<br>
+            Total Time: ${timeString}<br>
+            Run ID: <strong>${runID}</strong><br>
+            Verification Code: <strong>${verificationCode}</strong>
         </div>
     `;
 
@@ -7997,8 +8018,7 @@ function handleVictory() {
         accuracy: accuracy / 100,
         maxStreak,
         totalAttempts,
-        verificationCode
-    });
+        verificationCode    });
   
 // =============================================
 // PERFORMANCE FEEDBACK TEXT — SAFE TO EDIT
