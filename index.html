@@ -2501,7 +2501,6 @@ Respect structure strictly.
 <div id="startScreen">
   <div class="start-content">
     <h1 class="title">THE NATIONAL LEDGER</h1>
-    <p class="start-note">An anonymous local alias is created for each run.</p>
     <button class="start-btn" onclick="showModeSelect()">ENTER THE LEDGER</button>
     <button id="continueRunBtn" class="start-btn secondary-start-btn" onclick="continueSavedRun()" style="display:none;">
         CONTINUE STANDARD RUN
@@ -2824,6 +2823,9 @@ let runID = "";
 let questionStartTime = 0;
 let streak = 0; 
 let startTime; // Will be set in startGame()
+let finalElapsedTimeMs = null;
+function getElapsedTimeMs(){ return Number.isFinite(finalElapsedTimeMs) ? finalElapsedTimeMs : (startTime ? (Date.now() - startTime) : 0); }
+function freezeCompletionTime(fallbackMs = 0){ if(!Number.isFinite(finalElapsedTimeMs)) finalElapsedTimeMs = startTime ? (Date.now() - startTime) : fallbackMs; return finalElapsedTimeMs; }
 let room = localStorage.getItem("nationalLedgerRoom") ? parseInt(localStorage.getItem("nationalLedgerRoom")) : 1;
 let currentQuestion = null;
 let detourActive = false;
@@ -4863,6 +4865,7 @@ function startGame(shouldResume = false) {
     const hasSavedRun = shouldResume && modeAllowsSave() ? loadSavedGame() : false;
 
     if(!hasSavedRun){
+    finalElapsedTimeMs = null;
         resumedSavedRunThisSession = false;
     }
 
@@ -6945,7 +6948,11 @@ if(rapidGuess.triggered && !rapidGuessLocked){
         selectedIndex: choice,
         selectedAnswer: currentQuestion.options?.[choice] ?? "",
         correctIndex: currentQuestion.a,
-        correct: isCorrect ? 1 : 0,
+        answerKeyMatch: isCorrect ? 1 : 0,
+
+        correct: 0,
+
+        rapidGuessing: 1,
         tag: currentQuestion.tag || "none",
         type: currentQuestion.type || "none",
         objective: currentQuestion.objective || inferObjective(currentQuestion),
@@ -7012,7 +7019,11 @@ recordAdaptiveAttempt(currentQuestion, isCorrect, responseTime);
         selectedIndex: choice,
         selectedAnswer: currentQuestion.options?.[choice] ?? "",
         correctIndex: currentQuestion.a,
+        answerKeyMatch: isCorrect ? 1 : 0,
+
         correct: isCorrect ? 1 : 0,
+
+        rapidGuessing: 0,
         tag: currentQuestion.tag || "none",
         type: currentQuestion.type || "none",
         objective: currentQuestion.objective || inferObjective(currentQuestion),
@@ -7651,7 +7662,7 @@ function handleLegendaryVictory(){
         sfxVictory.play();
     }
 
-    const totalTimeMs = Date.now() - startTime;
+    const totalTimeMs = freezeCompletionTime();
     const timeString = formatTime(totalTimeMs);
     const accuracy = totalAttempts > 0 ? Math.round((correctAnswers / totalAttempts) * 100) : 0;
     const verificationCode = generateCode(username + "|LEGENDARY", accuracy, maxStreak, totalTimeMs);
@@ -7720,7 +7731,7 @@ function handleLegendaryVictory(){
 function handleScoreAttackVictory(){
     stopTimedModeClock();
 
-    const totalTimeMs = startTime ? (Date.now() - startTime) : 0;
+    const totalTimeMs = freezeCompletionTime();
     const timeString = formatTime(totalTimeMs);
     const accuracy = totalAttempts > 0
         ? Math.round((correctAnswers / totalAttempts) * 100)
@@ -7961,7 +7972,7 @@ function handleVictory() {
         sfxVictory.play();
     }
 
-    const totalTimeMs = Date.now() - startTime;
+    const totalTimeMs = freezeCompletionTime();
     const timeString = formatTime(totalTimeMs);
     const accuracy = totalAttempts > 0 ? Math.round((correctAnswers / totalAttempts) * 100) : 0;
     const verificationCode = generateCode(username, accuracy, maxStreak, totalTimeMs);
@@ -8358,7 +8369,7 @@ function renderInstructionalResourceSection(report){const weak=getWeakLearningOb
 function createInstructionalResourceCard(r){const a=document.createElement("article"),h=document.createElement("div"),t=document.createElement("h3"),k=document.createElement("span"),d=document.createElement("p"),l=document.createElement("a");a.className="resource-card";h.className="resource-card-header";t.className="resource-card-title";t.textContent=r.title;k.className="resource-card-type";k.textContent=INSTRUCTIONAL_RESOURCE_TYPE_LABELS[r.type]||INSTRUCTIONAL_RESOURCE_TYPE_LABELS.other;h.append(t,k);a.append(h);if(r.description){d.className="resource-card-description";d.textContent=r.description;a.append(d)}l.className="resource-card-link";l.href=r.url;l.target="_blank";l.rel="noopener noreferrer";l.textContent=getInstructionalResourceActionLabel(r);a.append(l);return a;}
 function openInstructionalReviewScreen(){const box=document.getElementById("gameBox");if(!box)return;const report=getMasteryReportData(),weak=getWeakLearningObjectiveIds(report),r=getRecommendedResources(weak),screen=document.createElement("section"),title=document.createElement("h1"),sub=document.createElement("p"),os=document.createElement("div"),oh=document.createElement("h2"),list=document.createElement("ul"),rs=document.createElement("div"),rh=document.createElement("h2"),intro=document.createElement("p"),cards=document.createElement("div"),actions=document.createElement("div");screen.id="instructionalReviewScreen";screen.className="mastery-report-screen review-materials-screen";title.id="instructionalReviewTitle";title.className="mastery-report-title";title.tabIndex=-1;title.textContent="REVIEW BEFORE YOUR NEXT ATTEMPT";sub.className="mastery-report-subtitle";sub.textContent="Use these materials to reinforce the concepts that showed the weakest signal in this run.";os.className="mastery-section";oh.textContent="Learning Objectives to Review";list.className="review-objective-list";weak.forEach(id=>{const li=document.createElement("li");li.textContent=`${id}: ${getInstructionalObjectiveTitle(id)}`;list.append(li)});os.append(oh,list);rs.className="mastery-section";rh.textContent="Recommended Materials";intro.className="resource-recommendation-intro";intro.textContent="Based on the weakest learning objectives in this run, start with these materials before your next attempt.";cards.className="resource-recommendation-list";r.forEach(x=>cards.append(createInstructionalResourceCard(x)));if(!r.length)cards.textContent="No review material is available for these objectives yet.";rs.append(rh,intro,cards);actions.className="mastery-actions";[["Return to Mastery Report",()=>showMasteryReportScreen(true),"continue-btn"],["Replay Mission",()=>location.reload(),"continue-btn secondary-modal-btn"],["Choose Another Ledger Run",()=>returnToModeSelectFromRun(),"continue-btn secondary-modal-btn"]].forEach(([x,f,c])=>{const b=document.createElement("button");b.type="button";b.className=c;b.textContent=x;b.addEventListener("click",f);actions.append(b)});screen.append(title,sub,os,rs,actions);box.replaceChildren(screen);title.focus();}
 function getMasteryReportData(){
-    const totalTimeMs = startTime ? (Date.now() - startTime) : 0;
+    const totalTimeMs = freezeCompletionTime();
     const accuracy = totalAttempts > 0 ? correctAnswers / totalAttempts : 0;
     const tagEntries = getEntriesFromBuckets(masteryState.byTag || {}, "tag");
     const objectiveEntries = getEntriesFromBuckets(masteryState.byObjective || {}, "objective");
@@ -8714,7 +8725,7 @@ function formatTime(ms) {
 // Removing those will break this function.
 // =============================================     
 function copyResults() {
-    const totalTimeMs = Date.now() - startTime;
+    const totalTimeMs = freezeCompletionTime();
     const timeString = formatTime(totalTimeMs);
     const code = document.getElementById("vCode").innerText;
     const accuracy = Math.round((correctAnswers / totalAttempts) * 100);
@@ -8743,8 +8754,8 @@ Verified by The Custodian`;
 }
 
 const TELEMETRY_PREFIX = "nationalLedgerTelemetry_";
-const TELEMETRY_VERSION = "Ledger-local-telemetry-v2";
-const GAME_VERSION = "National-Ledger-2026.07.23.1";
+const TELEMETRY_VERSION = "Ledger-local-telemetry-v3";
+const GAME_VERSION = "National-Ledger-2026.07.23.2";
 
 const TELEMETRY_COLUMNS = [
     "eventID",
@@ -8762,7 +8773,9 @@ const TELEMETRY_COLUMNS = [
     "selectedIndex",
     "selectedAnswer",
     "correctIndex",
+    "answerKeyMatch",
     "correct",
+    "rapidGuessing",
     "tag",
     "type",
     "objective",
@@ -8825,6 +8838,10 @@ function sendGameData(data = {}){
                 ? currentQuestion.options[selectedIndex] ?? ""
                 : "");
 
+        const eventName = data.event || "";
+        const isResponseEvent = eventName === "question" || eventName === "rapid_guessing";
+        const isCompletionEvent = /(?:^|_)complete$/.test(eventName);
+
         const priorExposureCount = questionID > 0
             ? records.filter(item =>
                 Number(item.questionID) === questionID
@@ -8840,7 +8857,7 @@ function sendGameData(data = {}){
             runID: activeRunID,
             game: data.game || "The National Ledger",
             mode: normalizedMode,
-            event: data.event || "",
+            event: eventName,
             room: Number(data.room ?? room ?? 0),
             questionID,
             questionVersion: Number(data.questionVersion ?? currentQuestion?.version ?? 1),
@@ -8848,14 +8865,16 @@ function sendGameData(data = {}){
             selectedIndex,
             selectedAnswer: String(selectedAnswer ?? ""),
             correctIndex: Number(data.correctIndex ?? -1),
-            correct: Number(data.correct ?? 0),
+            answerKeyMatch: isResponseEvent ? Number(data.answerKeyMatch ?? data.correct ?? 0) : 0,
+            correct: isResponseEvent ? Number(data.correct ?? 0) : 0,
+            rapidGuessing: isResponseEvent ? Number(data.rapidGuessing ?? (eventName === "rapid_guessing" ? 1 : 0)) : 0,
             tag: data.tag || "",
             type: data.type || "",
             objective: data.objective || "",
             responseTimeMs: Number(data.responseTime ?? data.responseTimeMs ?? 0),
             attempt: Number(data.attempt ?? 0),
             streak: Number(data.streak ?? 0),
-            elapsedTimeMs: Number(data.elapsedTime ?? data.elapsedTimeMs ?? 0),
+            elapsedTimeMs: isCompletionEvent ? Number(data.totalTime ?? data.totalTimeMs ?? 0) : Number(data.elapsedTime ?? data.elapsedTimeMs ?? 0),
             adaptiveMode: data.adaptiveMode || adaptiveMode || "",
             remediationStage: data.remediationStage || (remediationState?.active ? remediationState.stage || "" : ""),
             priorExposureCount,
