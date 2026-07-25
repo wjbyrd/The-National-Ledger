@@ -227,31 +227,31 @@ body::after{
 
 #gameBox {
     max-width: 750px;
-    flex:1;
-    min-width:0;
-    width:100%;
+    flex: 1;
+    min-width: 0;
+    width: 100%;
     margin: 0;
     padding: 18px 20px;
     text-align: center;
 
     background:
         radial-gradient(circle at center,
-            rgba(96,165,250,0.13) 0%,
-            rgba(15,23,42,0.58) 46%,
-            rgba(8,16,36,0.94) 74%,
-            rgba(2,6,23,0.99) 100%);
+            rgba(245,214,130,0.12) 0%,
+            rgba(30,24,18,0.58) 46%,
+            rgba(12,10,16,0.94) 74%,
+            rgba(3,5,12,0.99) 100%);
 
     backdrop-filter: blur(6px);
     border-radius: 14px;
     box-sizing: border-box;
 
     box-shadow:
-        0 0 22px rgba(96,165,250,0.18),
-        0 0 58px rgba(247,217,130,0.10),
-        0 0 72px rgba(15,23,42,0.72),
+        0 0 22px rgba(245,214,130,0.18),
+        0 0 58px rgba(255,255,240,0.08),
+        0 0 72px rgba(3,5,12,0.72),
         inset 0 0 42px rgba(0,0,0,0.78);
 
-    border: 1px solid rgba(247,217,130,0.34);
+    border: 1px solid rgba(245,214,130,0.34);
     animation: torchFlicker 6s infinite;
     transition: box-shadow .3s ease, border-color .3s ease;
     position: relative;
@@ -1722,13 +1722,16 @@ Every pixel matters.
     display: block;
   }
 
-    #gameBox{
-    width:100%; max-width:100%; margin:0 auto; padding:12px 10px; box-sizing:border-box;
-    text-align:center; border-radius:12px; backdrop-filter:blur(6px);
-    background:radial-gradient(circle at center,rgba(96,165,250,.13) 0%,rgba(15,23,42,.58) 46%,rgba(8,16,36,.94) 74%,rgba(2,6,23,.99) 100%);
-    border:1px solid rgba(247,217,130,.34);
-    box-shadow:0 0 18px rgba(96,165,250,.18),0 0 42px rgba(247,217,130,.10),0 0 54px rgba(15,23,42,.72),inset 0 0 30px rgba(0,0,0,.78);
-  }
+    #gameBox {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 12px 10px;
+    box-sizing: border-box;
+    text-align: center;
+    border-radius: 12px;
+    backdrop-filter: blur(6px);
+}
 
   #autosave{
     position: static;
