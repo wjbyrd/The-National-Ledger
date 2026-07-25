@@ -1,4 +1,4 @@
-<!-- NATIONAL LEDGER PATCH — 2026-07-23
+<!-- NATIONAL LEDGER PATCH — 2026-07-25
 - Preserves Standard artifacts and completion across all nonstandard modes
 - Counts Realm correct answers once
 - Selects complete three-question boss scaffolds; Legendary Boss remains random
@@ -2428,7 +2428,7 @@ body.game-active #soundToggle {
 
 
 /* 16. INSTRUCTIONAL RESOURCE RECOMMENDATIONS */
-.resource-recommendation-section{margin-top:14px}.resource-recommendation-intro{color:#e2d7b9;line-height:1.55;margin:0 0 14px}.resource-recommendation-list{display:grid;grid-template-columns:1fr;gap:12px}.resource-card{min-width:0;padding:16px;border:1px solid rgba(214,177,92,.48);border-radius:11px;background:linear-gradient(135deg,rgba(64,84,67,.92),rgba(11,14,12,.97));box-shadow:0 0 16px rgba(0,0,0,.38),inset 0 0 18px rgba(214,177,92,.07)}.resource-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.resource-card-title{min-width:0;margin:0;color:#f5db9b;font-size:17px;font-weight:800;line-height:1.32;overflow-wrap:anywhere}.resource-card-type{flex:0 0 auto;max-width:100%;padding:4px 8px;border:1px solid rgba(214,177,92,.62);border-radius:999px;color:#efe0b1;font-size:10px;font-weight:800;letter-spacing:.8px;line-height:1.2;text-transform:uppercase;overflow-wrap:anywhere}.resource-card-description{margin:10px 0 14px;color:rgba(243,234,210,.93);line-height:1.55;overflow-wrap:anywhere}.resource-card-link{display:inline-flex;align-items:center;justify-content:center;min-height:40px;max-width:100%;padding:9px 14px;border:1px solid rgba(244,213,141,.8);border-radius:8px;background:linear-gradient(180deg,#5a704e,#334331);color:#fff6d7;font-weight:800;text-align:center;text-decoration:none}.resource-card-link:hover{background:linear-gradient(180deg,#71865c,#43583d);transform:translateY(-1px)}.resource-card-link:focus-visible{outline:3px solid #f5db9b;outline-offset:3px;box-shadow:0 0 0 5px rgba(214,177,92,.45)}.review-materials-screen .mastery-section h2{margin:0 0 12px;color:#f4d58d;font-size:18px}.review-objective-list{margin:0;padding-left:22px;color:#f3ead2}.review-objective-list li{margin:7px 0;line-height:1.48}@media(max-width:420px){.resource-card{padding:14px}.resource-card-header{flex-direction:column;gap:8px}.resource-card-link{display:flex;width:100%;box-sizing:border-box}}
+.resource-recommendation-section{margin-top:14px}.resource-recommendation-intro{color:#e2d7b9;line-height:1.55;margin:0 0 14px}.resource-recommendation-list{display:grid;grid-template-columns:1fr;gap:12px}.resource-card{min-width:0;padding:16px;border:1px solid rgba(214,177,92,.48);border-radius:11px;background:linear-gradient(135deg,rgba(64,84,67,.92),rgba(11,14,12,.97));box-shadow:0 0 16px rgba(0,0,0,.38),inset 0 0 18px rgba(214,177,92,.07)}.resource-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.resource-card-title{min-width:0;margin:0;color:#f5db9b;font-size:17px;font-weight:800;line-height:1.32;overflow-wrap:anywhere}.resource-card-type{flex:0 0 auto;max-width:100%;padding:4px 8px;border:1px solid rgba(214,177,92,.62);border-radius:999px;color:#efe0b1;font-size:10px;font-weight:800;letter-spacing:.8px;line-height:1.2;text-transform:uppercase; white-space:nowrap; overflow-wrap:normal;}.resource-card-description{margin:10px 0 14px;color:rgba(243,234,210,.93);line-height:1.55;overflow-wrap:anywhere}.resource-card-link{display:inline-flex;align-items:center;justify-content:center;min-height:40px;max-width:100%;padding:9px 14px;border:1px solid rgba(244,213,141,.8);border-radius:8px;background:linear-gradient(180deg,#5a704e,#334331);color:#fff6d7;font-weight:800;text-align:center;text-decoration:none}.resource-card-link:hover{background:linear-gradient(180deg,#71865c,#43583d);transform:translateY(-1px)}.resource-card-link:focus-visible{outline:3px solid #f5db9b;outline-offset:3px;box-shadow:0 0 0 5px rgba(214,177,92,.45)}.review-materials-screen .mastery-section h2{margin:0 0 12px;color:#f4d58d;font-size:18px}.review-objective-list{margin:0;padding-left:22px;color:#f3ead2}.review-objective-list li{margin:7px 0;line-height:1.48}@media(max-width:420px){.resource-card{padding:14px}.resource-card-header{flex-direction:column;gap:8px}.resource-card-link{display:flex;width:100%;box-sizing:border-box}}
 </style>
 <script src="instructional_resources.js"></script>
 <script src="national_ledger_questions_student.js"></script>
@@ -2861,6 +2861,10 @@ const RAPID_GUESS_CONFIG = {
     minAttempts: 5,         // don't trigger until at least 5 recent attempts exist
     avgTimeMs: 3000,        // average under 3 seconds = suspicious
     maxAccuracy: 0.50,      // under 50% accuracy = not engaged
+    burstWindowSize: 4,     // also inspect the most recent local burst
+    burstFastMs: 2500,      // a response under 2.5 seconds counts as fast
+    burstMinFast: 3,        // three fast answers in the burst is suspicious
+    burstMaxAccuracy: 0.25, // no more than one correct answer in four
     lockMs: 4500            // pause length
 };
 let tagHistory = [];
@@ -6043,6 +6047,7 @@ if(currentQuestion.image){
 // =============================================     
 function displayQuestion() {
     answerSubmissionPending = false;
+    questionStartTime = Date.now();
     const optionsElement = document.getElementById("answers");
     optionsElement.innerHTML = "";
 
@@ -6094,9 +6099,21 @@ function checkRapidGuessing(isCorrect, responseTime){
 
     const avgTime = recent.reduce((sum, item) => sum + item.responseTime, 0) / recent.length;
     const accuracy = recent.reduce((sum, item) => sum + item.correct, 0) / recent.length;
+    const burst = recent.slice(-RAPID_GUESS_CONFIG.burstWindowSize);
+    const burstFastCount = burst.filter(item =>
+        item.responseTime < RAPID_GUESS_CONFIG.burstFastMs
+    ).length;
+    const burstAccuracy = burst.length
+        ? burst.reduce((sum, item) => sum + item.correct, 0) / burst.length
+        : 1;
+    const rollingPattern = avgTime < RAPID_GUESS_CONFIG.avgTimeMs
+        && accuracy < RAPID_GUESS_CONFIG.maxAccuracy;
+    const burstPattern = burst.length === RAPID_GUESS_CONFIG.burstWindowSize
+        && burstFastCount >= RAPID_GUESS_CONFIG.burstMinFast
+        && burstAccuracy <= RAPID_GUESS_CONFIG.burstMaxAccuracy;
 
     return {
-        triggered: avgTime < RAPID_GUESS_CONFIG.avgTimeMs && accuracy < RAPID_GUESS_CONFIG.maxAccuracy,
+        triggered: rollingPattern || burstPattern,
         avgTime,
         accuracy
     };
@@ -7597,7 +7614,11 @@ function getMasteryReportData(){
     const typeEntries = getTypeMasteryEntries();
     const behavior = getRecentBehaviorSignals();
 
-    const strongest = sortStrongest([...objectiveEntries, ...tagEntries]).slice(0, 4);
+    const strongest = sortStrongest(
+        [...objectiveEntries, ...tagEntries].filter(entry =>
+            entry.attempts >= 2 && entry.accuracy >= 0.70
+        )
+    ).slice(0, 4);
     const weakestObjectives = getMeaningfulWeakEntries(objectiveEntries, 0.85).slice(0, 4);
     const weakestTypes = getMeaningfulWeakEntries(typeEntries, 0.85).slice(0, 3);
     const weakestSkills = getMeaningfulWeakEntries(skillEntries, 0.85).slice(0, 3);
