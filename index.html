@@ -2971,6 +2971,7 @@ let timedModeEndTime = null;
 let timedModeTimerInterval = null;
 let timedHighestRoom = 1;
 let timedSetbacks = 0;
+let timedModeTerminal = false;
 
 // =============================================
 // SCORE ATTACK MODE ADDITION — CONFIG + STATE
@@ -3143,9 +3144,44 @@ function scheduleForCurrentRun(callback, delay){
     const scheduledSessionId = runSessionId;
     return setTimeout(() => {
         if(scheduledSessionId !== runSessionId) return;
+        if(isTimedModeTerminal()) return;
+        if(isTimedModeExpired()){
+            endTimedModeRun();
+            return;
+        }
         callback();
     }, delay);
 }
+
+function isTimedModeExpired(){
+    return gameMode === "timed"
+        && Number.isFinite(timedModeEndTime)
+        && Date.now() >= timedModeEndTime;
+}
+
+function isTimedModeTerminal(){
+    return timedModeTerminal || gameMode === "timed-complete";
+}
+
+function reconcileTimedModeClock(){
+    if(gameMode !== "timed" || isTimedModeTerminal()) return;
+
+    if(isTimedModeExpired()){
+        endTimedModeRun();
+        return;
+    }
+
+    updateTimedModeClock();
+}
+
+document.addEventListener("visibilitychange", function(){
+    if(!document.hidden){
+        reconcileTimedModeClock();
+    }
+});
+
+window.addEventListener("pageshow", reconcileTimedModeClock);
+window.addEventListener("focus", reconcileTimedModeClock);
 function getSaveKey(){ return `${SAVE_KEY}_${gameMode || "standard"}`; }
 function isBossRoomForMode(r){ if(gameMode === "exam" || gameMode === "timed") return false; return r === 10 || r === 20 || r === 30; }
 function getModeDisplayName(){ if(gameMode === "timed") return "Timed Trial"; if(gameMode === "exam") return "Exam Drill"; if(gameMode === "legendary") return "Legendary Mode"; if(gameMode === "score") return "Score Attack"; return "Standard Campaign"; }	 
@@ -4998,6 +5034,7 @@ function returnToTitleScreen(){
 function startSelectedMode(mode){ gameMode = mode || "standard"; localStorage.setItem("nationalLedgerCurrentMode", gameMode); const modeScreen = document.getElementById("modeSelectScreen"); if(modeScreen) modeScreen.style.display = "none"; if(gameMode === "standard"){ startGame(false); return; } resetRunStateForNewMode(); startGame(false); }
 
 function returnToModeSelectFromRun(){
+    timedModeTerminal = true;
     beginRunSession();
     stopTimedModeClock();
     stopAllMusic();
@@ -5179,6 +5216,7 @@ function startGame(shouldResume = false) {
 	 
 
 function resetRunStateForNewMode(){
+    timedModeTerminal=false;
     room=1; bossHealth=3; bossPool=[]; bossCheckpoint=1; correctAnswers=0; totalAttempts=0; maxStreak=0; streak=0; conceptMemory={}; masteryState={byTag:{},byObjective:{},bySkill:{},recent:[]}; adaptiveMode="support"; tagHistory=[]; lastTypes=[]; rapidGuessHistory=[]; rapidGuessWarnings=0; rapidGuessLocked=false; timedHighestRoom=1; timedSetbacks=0; bossMistakeCountThisRun=0; bossesDefeatedThisRun=0; resetRemediationState();
     // SCORE ATTACK MODE ADDITION: reset score whenever a non-standard mode starts fresh from the mode menu.
     resetScoreAttackState();
@@ -5189,6 +5227,7 @@ function resetRunStateForNewMode(){
 
 function initializeRunForMode(mode){
     gameMode = mode || "standard";
+    timedModeTerminal = false;
 
     const autosave = document.getElementById("autosave");
     if(autosave){
@@ -5215,6 +5254,7 @@ function initializeRunForMode(mode){
 }
 	 
 function startTimedModeClock(){
+    timedModeTerminal = false;
     timedModeEndTime = Date.now() + timedModeDurationMs;
 
     const hud = document.getElementById("timedModeHud");
@@ -5265,16 +5305,21 @@ function updateTimedModeClock(){
 }
 
 function endTimedModeRun(){
-    if(gameMode !== "timed") return;
+    if(gameMode !== "timed" || timedModeTerminal) return;
 
+    timedModeTerminal = true;
     beginRunSession();
+    answerSubmissionPending = true;
+    rapidGuessLocked = true;
+    setAnswerButtonsDisabled(true);
     stopTimedModeClock();
     gameMode = "timed-complete";
 
     const accuracy = totalAttempts > 0
         ? Math.round((correctAnswers / totalAttempts) * 100)
         : 0;
-    const totalTimeMs = freezeCompletionTime(timedModeDurationMs);
+    finalElapsedTimeMs = timedModeDurationMs;
+    const totalTimeMs = timedModeDurationMs;
     const timeString = formatTime(totalTimeMs);
     const verificationCode = generateCode(username + "|TIMED", accuracy, maxStreak, totalTimeMs);
 
@@ -5313,7 +5358,8 @@ function endTimedModeRun(){
         accuracy: accuracy / 100,
         maxStreak: maxStreak,
         totalAttempts: totalAttempts,
-        verificationCode    });
+        verificationCode: verificationCode
+    });
 
     document.getElementById("bossMessage").innerText = "";
     document.getElementById("formulaHint").innerText = "";
@@ -5605,6 +5651,27 @@ async function isQuestionAnswerCorrect(question, selectedIndex){
         return isPublishedAnswerCorrect(question, selectedOptionText);
     }
     return Number.isInteger(question.a) && selectedIndex === question.a;
+}
+
+async function verifyQuestionAnswerWithTimeout(question, selectedIndex, timeoutMs = 5000){
+    let timeoutId = null;
+
+    const timeoutPromise = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => {
+            reject(new Error("Answer verification timed out."));
+        }, timeoutMs);
+    });
+
+    try {
+        return await Promise.race([
+            isQuestionAnswerCorrect(question, selectedIndex),
+            timeoutPromise
+        ]);
+    } finally {
+        if(timeoutId !== null){
+            clearTimeout(timeoutId);
+        }
+    }
 }
     
 // =============================================
@@ -5912,6 +5979,13 @@ document.addEventListener("keydown", function(event){
 // Changing logic here will break progression.
      
 function loadQuestion() {
+    if(isTimedModeTerminal()) return;
+
+    if(isTimedModeExpired()){
+        endTimedModeRun();
+        return;
+    }
+
     questionStartTime = Date.now(); 
     updateMazeTrack();
     const questionElement = document.getElementById("question");
@@ -5927,11 +6001,6 @@ function loadQuestion() {
 	imageBox.style.display = "none";
 
     // 1. Determine Difficulty and Boss Status
-if(gameMode === "timed" && timedModeEndTime && Date.now() >= timedModeEndTime){
-    endTimedModeRun();
-    return;
-}
-
 if((gameMode === "timed" || gameMode === "exam") && room > 30){
     handlePracticeModeComplete();
     return;
@@ -6216,6 +6285,13 @@ if(currentQuestion.image){
 // This is the bridge between UI and engine.
 // =============================================     
 function displayQuestion() {
+    if(isTimedModeTerminal()) return;
+
+    if(isTimedModeExpired()){
+        endTimedModeRun();
+        return;
+    }
+
     answerSubmissionPending = false;
     questionStartTime = Date.now();
     const optionsElement = document.getElementById("answers");
@@ -6308,12 +6384,29 @@ function checkRapidGuessing(isCorrect, responseTime){
      
 async function answer(choice) {
     const answerSessionId = runSessionId;
+
+    if(isTimedModeTerminal()) return;
+
+    if(isTimedModeExpired()){
+        endTimedModeRun();
+        return;
+    }
+
     if(answerSubmissionPending || rapidGuessLocked) return;
     answerSubmissionPending = true;
     setAnswerButtonsDisabled(true);
     const responseTime = Date.now() - questionStartTime;
     let isCorrect = false;
-    try { isCorrect = await isQuestionAnswerCorrect(currentQuestion, choice); if(answerSessionId !== runSessionId) return; } catch(error) { if(answerSessionId !== runSessionId) return; console.error("Answer verification failed:", error); answerSubmissionPending = false; setAnswerButtonsDisabled(false); showGameModal({ title: "Answer Check Failed", text: "The National Ledger could not verify this answer. Reload the game files and try again.", confirmText: "Continue" }); return; }
+    try {
+        isCorrect = await verifyQuestionAnswerWithTimeout(currentQuestion, choice);
+
+        if(answerSessionId !== runSessionId || isTimedModeTerminal()) return;
+
+        if(isTimedModeExpired()){
+            endTimedModeRun();
+            return;
+        }
+    } catch(error) { if(answerSessionId !== runSessionId) return; console.error("Answer verification failed:", error); answerSubmissionPending = false; setAnswerButtonsDisabled(false); showGameModal({ title: "Answer Check Failed", text: "The National Ledger could not verify this answer. Reload the game files and try again.", confirmText: "Continue" }); return; }
 
     // --- GLOBAL MEMORY DECAY ---
     for(let tag in conceptMemory){
@@ -7086,7 +7179,8 @@ function handleLegendaryVictory(){
         accuracy: accuracy / 100,
         maxStreak,
         totalAttempts,
-        verificationCode    });
+        verificationCode: verificationCode
+    });
 
     let judgment = "Legendary Ledger run confirmed. You handled national output, prices, growth, productivity, and labor-market traps under pressure.";
     if(accuracy >= 90){
@@ -7162,7 +7256,8 @@ function handleScoreAttackVictory(){
         score: scoreAttackScore,
         bestScore: scoreAttackBestScore,
         scoreEvents: JSON.stringify(scoreAttackEvents),
-        verificationCode    });
+        verificationCode: verificationCode
+    });
 
     let scoreLine = "Respectable. The Ledger noticed.";
     if(scoreAttackScore >= 9250){
@@ -7245,7 +7340,8 @@ function handlePracticeModeComplete(){
         accuracy: accuracy / 100,
         maxStreak,
         totalAttempts,
-        verificationCode    });
+        verificationCode: verificationCode
+    });
 
     document.getElementById("bossMessage").innerText = "";
     document.getElementById("formulaHint").innerText = "";
@@ -7406,7 +7502,8 @@ function handleVictory() {
         accuracy: accuracy / 100,
         maxStreak,
         totalAttempts,
-        verificationCode    });
+        verificationCode: verificationCode
+    });
   
 // =============================================
 // PERFORMANCE FEEDBACK TEXT — SAFE TO EDIT
